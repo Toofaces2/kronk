@@ -3,9 +3,6 @@ from timeit import default_timer as timer
 from jurialmunkey.parser import try_int
 from jurialmunkey.window import get_property
 from jurialmunkey.ftools import cached_property
-from tmdbhelper.lib.files.locker import mutexlock
-from tmdbhelper.lib.files.futils import json_loads as data_loads
-from tmdbhelper.lib.files.futils import json_dumps as data_dumps
 from tmdbhelper.lib.addon.plugin import get_localized, get_setting, ADDONPATH, KeyGetter
 from tmdbhelper.lib.addon.logger import kodi_log, TimerFunc
 from tmdbhelper.lib.addon.tmdate import (
@@ -16,6 +13,10 @@ from tmdbhelper.lib.addon.tmdate import (
     get_timedelta,
     set_timestamp
 )
+from threading import Thread, Lock
+from tmdbhelper.lib.files.locker import mutexlock
+from tmdbhelper.lib.files.futils import json_loads as data_loads
+from tmdbhelper.lib.files.futils import json_dumps as data_dumps
 
 
 class TraktStoredAccessToken:
@@ -24,13 +25,13 @@ class TraktStoredAccessToken:
     mutex_lockname = 'TraktCheckingAuthorization'
     check_auth_url = 'https://api.trakt.tv/sync/last_activities'
     access_message = ''
+    thread_lock = Lock()
 
     def __init__(self, trakt_api):
         self.trakt_api = trakt_api
 
     @cached_property
     def timestamp_id(self):
-        """ Get a timestamp for identifying different threads or processes """
         return get_datetime_now().strftime('%H:%M:%S.%f')
 
     def kodi_log(self, msg, level=1):
@@ -45,7 +46,7 @@ class TraktStoredAccessToken:
             token = data_loads(self.trakt_api.user_token.value) or {}
         except Exception as exc:
             token = {}
-            kodi_log(exc, 1)
+            self.kodi_log(exc, 1)
         return token
 
     def get_key(self, key):
@@ -143,7 +144,7 @@ class TraktStoredAccessToken:
     @cached_property
     def winprop_traktisauth(self):
         winprop_traktisauth = get_property('TraktIsAuth', is_type=float)
-        winprop_traktisauth = winprop_traktisauth or self.authorization_check()  # If we dont have TraktIsAuth but were asking to check it then we're on first start so lets check that the stored token is valid
+        winprop_traktisauth = winprop_traktisauth or self.authorization_check()
         return winprop_traktisauth or 0
 
     @property
@@ -152,8 +153,8 @@ class TraktStoredAccessToken:
 
     def on_overrun(self):
         self.kodi_log(f'Trakt authentication exceeded limit.\n{self.access_message}')
-        get_property('TraktRefreshTimeStamp', set_timestamp(300))  # Set a cooldown
-        get_property('TraktRefreshAttempts', 0)  # Reset refresh attempts
+        get_property('TraktRefreshTimeStamp', set_timestamp(300))
+        get_property('TraktRefreshAttempts', 0)
         return
 
     def on_backoff(self):
@@ -175,7 +176,6 @@ class TraktStoredAccessToken:
         return self.stored_authorization
 
     def on_success(self):
-        """Triggered when device authentication has been completed"""
         self.kodi_log('Trakt authentication token refreshed.')
         self.update_stored_authorization()
         self.update_traktisauth_property()
@@ -183,7 +183,7 @@ class TraktStoredAccessToken:
 
     def update_traktisauth_property(self):
         get_property('TraktIsAuth', set_property=f'{self.expires_in_timestamp}')
-        get_property('TraktRefreshAttempts', 0)  # Reset refresh attempts
+        get_property('TraktRefreshAttempts', 0)
 
     def update_stored_authorization(self):
         self.trakt_api.user_token.value = self.winprop_traktusertoken = data_dumps(self.stored_authorization)
@@ -226,17 +226,25 @@ class TraktStoredAccessToken:
     def authorization(self):
         return self.get_refreshed_token()
 
-    def logout(self):
-        response = (
-            self.trakt_api.del_authorisation_token(self.access_token)
-            if self.access_token else None
-        )
-        head = get_localized(32212)
-        text = (
-            get_localized(32214)
-            if not response else
-            get_localized(32215)
-            if response.status_code != 200 else
-            get_localized(32216)
-        )
-        Dialog().ok(head, text)
+    def logout(self, confirmation=True):
+        if confirmation and not Dialog().yesno(get_localized(32212), get_localized(32213)):
+            return
+        return TraktStoredAccessToken(self.trakt_api).logout()
+
+    def refresh_token_in_background(self):
+        """
+        Starts the Trakt token refresh check in a separate, non-blocking thread.
+        This is a new method that won't block the main thread.
+        """
+        def _run_refresh():
+            with self.thread_lock:
+                trakt_api = self.trakt_api.__class__(client_id=self.trakt_api.client_id, client_secret=self.trakt_api.client_secret)
+                authenticator = self.__class__(trakt_api)
+                
+                if not authenticator.is_expired:
+                    authenticator.on_current()
+                else:
+                    authenticator.get_refreshed_token()
+
+        refresh_thread = Thread(target=_run_refresh)
+        refresh_thread.start()

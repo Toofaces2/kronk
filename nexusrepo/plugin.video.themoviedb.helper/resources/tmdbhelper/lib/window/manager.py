@@ -1,7 +1,8 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from xbmc import Monitor
 from xbmcgui import Dialog
 from contextlib import suppress
-import jurialmunkey.window as window
 from jurialmunkey.parser import try_int, parse_paramstring, reconfigure_legacy_params
 from tmdbhelper.lib.addon.plugin import get_localized, executebuiltin
 from tmdbhelper.lib.addon.dialog import BusyDialog
@@ -18,6 +19,8 @@ from tmdbhelper.lib.window.constants import (
     SV_ROUTES
 )
 from tmdbhelper.lib.addon.logger import kodi_log
+from threading import Thread, Lock
+from tmdbhelper.lib.items.listitem import WindowPropertySetter
 
 
 class PathConstructor:
@@ -65,7 +68,7 @@ class PathConstructor:
     def is_valid(self):
         if not self.path:
             return False
-        if self.path == window.get_property(PREFIX_CURRENT):  # Same path as current so skip as user double clicked
+        if self.path == window.get_property(PREFIX_CURRENT):
             return False
         return True
 
@@ -82,7 +85,7 @@ def PathConstructorFactory(path):
     return PathConstructor(**prms)
 
 
-class WindowManager(EventLoop):
+class WindowManager(EventLoop, WindowPropertySetter):
 
     position = 0
     added_path = None
@@ -90,10 +93,14 @@ class WindowManager(EventLoop):
     return_info = False
     first_run = True
     exit = False
+    thread_lock = Lock()
+    busy_dialog = BusyDialog()
 
     def __init__(self, **kwargs):
         self.window_id = try_int(kwargs.get('call_auto'), fallback=None)
         self.params = kwargs
+        # Set up a direct reference to the database access class to avoid multiple lookups
+        self.db = FindQueriesDatabase()
 
     @cached_property
     def xbmc_monitor(self):
@@ -107,7 +114,7 @@ class WindowManager(EventLoop):
 
     @property
     def base_id(self):
-        if self.first_run:  # On first run the base window won't be open yet so don't check for it
+        if self.first_run:
             return
         return self.window_id
 
@@ -115,19 +122,19 @@ class WindowManager(EventLoop):
         self.position = 0
         self.added_path = None
         self.current_path = None
-        window.get_property(PREFIX_COMMAND, clear_property=True)
-        window.get_property(PREFIX_CURRENT, clear_property=True)
-        window.get_property(PREFIX_POSITION, clear_property=True)
-        window.get_property(f'{PREFIX_PATH}0', clear_property=True)
-        window.get_property(f'{PREFIX_PATH}1', clear_property=True)
+        self.get_property(PREFIX_COMMAND, clear_property=True)
+        self.get_property(PREFIX_CURRENT, clear_property=True)
+        self.get_property(PREFIX_POSITION, clear_property=True)
+        self.get_property(f'{PREFIX_PATH}0', clear_property=True)
+        self.get_property(f'{PREFIX_PATH}1', clear_property=True)
         kodi_log(f'Window Manager [ACTION] reset_properties', 2)
 
     def set_properties(self, position=1, path=None):
         self.position = position
         self.added_path = path or ''
-        window.get_property(PREFIX_CURRENT, set_property=path)
-        window.get_property(f'{PREFIX_PATH}{position}', set_property=path)
-        window.get_property(PREFIX_POSITION, set_property=position)
+        self.get_property(PREFIX_CURRENT, set_property=path)
+        self.get_property(f'{PREFIX_PATH}{position}', set_property=path)
+        self.get_property(PREFIX_POSITION, set_property=position)
         kodi_log(f'Window Manager [ACTION] set_properties {position}\n{path}', 2)
 
     def add_origin(self):
@@ -169,16 +176,12 @@ class WindowManager(EventLoop):
 
     def call_auto(self):
         kodi_log(f'Window Manager [ACTION] call_auto', 2)
-        # Already instance running and has window open so let's exit
         if self.is_running:
             kodi_log(f'Window Manager [ACTION] call_auto running...', 2)
             return
-        # Reset properties back to init
         self.reset_properties()
-        # Add a return origin if available
         self.add_origin()
         kodi_log(f'Window Manager [ACTION] call_auto event_loop', 2)
-        # Start up our service to monitor the windows
         return self.event_loop()
 
     def add_path(self, path):
@@ -195,34 +198,30 @@ class WindowManager(EventLoop):
         if not path_constructor or not path_constructor.is_valid:
             return
         kodi_log(f'Window Manager [ACTION] add_path_to_history adding {path_constructor.path}', 2)
-        window.wait_for_property(PREFIX_ADDPATH, path_constructor.path, True, poll=0.3)
-        kodi_log(f'Window Manager [ACTION] add_path_to_history added!', 2)
+        self.get_property(PREFIX_ADDPATH, set_property=path_constructor.path)
         self.call_auto()
 
-    def make_query(self, query, tmdb_type, separator=' / '):
-        if separator and separator in query:
-            split_str = query.split(separator)
-            x = Dialog().select(get_localized(32236), split_str)
-            if x == -1:
+    def _get_tmdb_id_from_query_async(self, query, tmdb_type, separator, thread_lock):
+        with thread_lock:
+            with self.busy_dialog:
+                tmdb_id = self.db.get_tmdb_id_from_query(
+                    tmdb_type, query, header=query, use_details=True, auto_single=True
+                )
+            if not tmdb_id:
+                Dialog().notification('TMDbHelper', get_localized(32310).format(query))
                 return
-            query = split_str[x]
-        with BusyDialog():
-            tmdb_id = FindQueriesDatabase().get_tmdb_id_from_query(tmdb_type, query, header=query, use_details=True, auto_single=True)
-        if not tmdb_id:
-            Dialog().notification('TMDbHelper', get_localized(32310).format(query))
-            return
-        return f'plugin://plugin.video.themoviedb.helper/?info=details&tmdb_type={tmdb_type}&tmdb_id={tmdb_id}'
+            url = f'plugin://plugin.video.themoviedb.helper/?info=details&tmdb_type={tmdb_type}&tmdb_id={tmdb_id}'
+            self.add_path(url)
 
     def add_query(self, query, tmdb_type, separator=' / '):
         kodi_log(f'Window Manager [ACTION] add_query {query} {tmdb_type}', 2)
-        url = self.make_query(query, tmdb_type, separator)
-        if not url:
-            return
-        return self.add_path(url)
+        # Use a background thread to make the blocking call non-blocking
+        thread = Thread(target=self._get_tmdb_id_from_query_async, args=(query, tmdb_type, separator, self.thread_lock))
+        thread.start()
 
     def close_dialog(self):
         kodi_log(f'Window Manager [ACTION] close_dialog', 2)
-        window.wait_for_property(PREFIX_COMMAND, 'exit', True, poll=0.3)
+        self.get_property(PREFIX_COMMAND, set_property='exit')
         self._call_exit()
         self._on_exit()
         self.call_window()
@@ -258,13 +257,13 @@ class WindowManager(EventLoop):
             return executebuiltin(f'Container.Update({self.params["call_update"]})')
 
     def router(self):
-        with suppress(KeyError):
+        if self.params.get('add_path'):
             return self.add_path(self.params['add_path'])
-        with suppress(KeyError):
+        if self.params.get('add_dbid'):
             return self.add_dbid(self.params['add_dbid'], self.params['tmdb_type'])
-        with suppress(KeyError):
+        if self.params.get('add_tmdb'):
             return self.add_tmdb(self.params['add_tmdb'], self.params['tmdb_type'])
-        with suppress(KeyError):
+        if self.params.get('add_query'):
             return self.add_query(self.params['add_query'], self.params['tmdb_type'])
         if self.params.get('close_dialog') or self.params.get('reset_path'):
             return self.close_dialog()

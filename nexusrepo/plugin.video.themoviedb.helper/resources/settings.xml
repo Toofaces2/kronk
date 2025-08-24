@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <settings version="1">
     <section id="plugin.video.themoviedb.helper">
         <category id="general" label="128" help="">
@@ -95,7 +95,7 @@
                 <setting id="ignore_regionreleasefilter" type="boolean" label="32449" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="2" label="32401">
@@ -111,7 +111,7 @@
                             <option label="32397">4</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
             </group>
             <group id="3" label="32367">
@@ -125,7 +125,7 @@
                             <option label="32003">2</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
                 <setting id="recache_kodidb" type="action" label="32467" help="">
                     <level>0</level>
@@ -133,32 +133,32 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="button" format="action"/>
+                    <control type="button" format="action" />
                 </setting>
             </group>
             <group id="4" label="32090">
                 <setting id="flatten_seasons" type="boolean" label="32085" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="seasons_specials" type="boolean" label="32020" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="seasons_anticipated" type="boolean" label="32018" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="seasons_upnext" type="boolean" label="32015" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="!is" setting="trakt_token"/>
+                            <condition operator="!is" setting="trakt_token" />
                         </dependency>
                     </dependencies>
                 </setting>
@@ -170,7 +170,7 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="button" format="action"/>
+                    <control type="button" format="action" />
                 </setting>
             </group>
         </category>
@@ -179,19 +179,19 @@
                 <setting id="widgets_nextpage" type="boolean" label="32081" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="2" label="32368">
                 <setting id="calendar_flatten" type="boolean" label="32404" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="nextaired_linklibrary" type="boolean" label="32156" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="calendar_art" type="integer" label="32371" help="">
                     <level>0</level>
@@ -203,7 +203,7 @@
                             <option label="32370">2</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
                 <setting id="trakt_nextepisodesort" type="string" label="32093" help="32049">
                     <level>0</level>
@@ -216,12 +216,12 @@
                             <option label="lastweek">lastweek</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
                 <setting id="nextepisodes_usecalendar" type="boolean" label="32413" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
         </category>
@@ -254,14 +254,15 @@
                 <setting id="auto_update" type="boolean" label="32076" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="library_autoupdate" type="boolean" label="32086" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
-                <setting id="library_autoupdate_hour" type="integer" label="32130" help="" parent="library_autoupdate">
+                <setting id="library_autoupdate_hour" type="integer" label="32130" help=""
+                    parent="library_autoupdate">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -297,9 +298,10 @@
                             <condition operator="is" setting="library_autoupdate">True</condition>
                         </dependency>
                     </dependencies>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
-                <setting id="monitor_userlist" type="string" label="32131" help="" parent="library_autoupdate">
+                <setting id="monitor_userlist" type="string" label="32131" help=""
+                    parent="library_autoupdate">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
@@ -315,7 +317,7 @@
                 </setting>
                 <setting id="monitor_userslug" type="string" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -325,10 +327,11 @@
                         </dependency>
                     </dependencies>
                     <control type="edit" format="string">
-                        <heading/>
+                        <heading />
                     </control>
                 </setting>
-                <setting id="last_autoupdate" type="string" label="32154" help="" parent="monitor_userslug">
+                <setting id="last_autoupdate" type="string" label="32154" help=""
+                    parent="monitor_userslug">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
@@ -339,7 +342,8 @@
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(plugin.video.themoviedb.helper,library_autoupdate,busy_dialog,force=select)</data>
+                        <data>
+                            RunScript(plugin.video.themoviedb.helper,library_autoupdate,busy_dialog,force=select)</data>
                     </control>
                 </setting>
             </group>
@@ -347,12 +351,12 @@
                 <setting id="ignore_folderchecking" type="boolean" label="32077" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="alternative_nfo" type="boolean" label="32390" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="legacy_conversion" type="boolean" help="">
                     <level>0</level>
@@ -362,7 +366,7 @@
                             <condition on="property" name="InfoBool">false</condition>
                         </dependency>
                     </dependencies>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="update_skinshortcuts" type="boolean" help="">
                     <level>0</level>
@@ -372,7 +376,7 @@
                             <condition on="property" name="InfoBool">false</condition>
                         </dependency>
                     </dependencies>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
         </category>
@@ -380,7 +384,7 @@
             <group id="1" label="32029">
                 <setting id="omdb_apikey" type="string" label="32001" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -388,10 +392,11 @@
                         <heading>32001</heading>
                     </control>
                 </setting>
-                <setting id="omdb_apikey_access" type="boolean" label="32483" help="" parent="omdb_apikey">
+                <setting id="omdb_apikey_access" type="boolean" label="32483" help=""
+                    parent="omdb_apikey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -399,7 +404,7 @@
             <group id="2" label="32422">
                 <setting id="mdblist_apikey" type="string" label="32423" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -407,10 +412,11 @@
                         <heading>32423</heading>
                     </control>
                 </setting>
-                <setting id="mdblist_apikey_access" type="boolean" label="32483" help="" parent="mdblist_apikey">
+                <setting id="mdblist_apikey_access" type="boolean" label="32483" help=""
+                    parent="mdblist_apikey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -418,7 +424,7 @@
             <group id="3" label="32124">
                 <setting id="ratingposterdb_apikey" type="string" label="32127" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -430,7 +436,7 @@
             <group id="4" label="32030">
                 <setting id="fanarttv_clientkey" type="string" label="32019" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -438,31 +444,35 @@
                         <heading>32019</heading>
                     </control>
                 </setting>
-                <setting id="fanarttv_lookup" type="boolean" label="32021" help="" parent="fanarttv_clientkey">
+                <setting id="fanarttv_lookup" type="boolean" label="32021" help=""
+                    parent="fanarttv_clientkey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
-                <setting id="fanarttv_prefer" type="boolean" label="32039" help="" parent="fanarttv_clientkey">
+                <setting id="fanarttv_prefer" type="boolean" label="32039" help=""
+                    parent="fanarttv_clientkey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <dependencies>
                         <dependency type="visible" operator="is" setting="fanarttv_lookup">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="language_lookup" type="boolean" label="32050" help="" parent="fanarttv_clientkey">
+                <setting id="language_lookup" type="boolean" label="32050" help=""
+                    parent="fanarttv_clientkey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <dependencies>
                         <dependency type="visible" operator="is" setting="fanarttv_lookup">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="fanarttv_clientkey_access" type="boolean" label="32483" help="" parent="fanarttv_clientkey">
+                <setting id="fanarttv_clientkey_access" type="boolean" label="32483" help=""
+                    parent="fanarttv_clientkey">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -471,7 +481,7 @@
                 <visible>false</visible>
                 <setting id="tvdb_token" type="string" label="32011" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -487,7 +497,7 @@
                 <setting id="tvdb_token_access" type="boolean" label="32483" help="" parent="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -496,7 +506,7 @@
                 <visible>false</visible>
                 <setting id="tmdb_user_token" type="string" label="32011" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
@@ -512,7 +522,7 @@
                 <setting id="tmdb_user_token_access" type="boolean" label="32483" help="" parent="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -522,8 +532,10 @@
             <group id="1" label="32031">
                 <setting id="trakt_token" type="string" label="32011" help="">
                     <level>0</level>
-                    <default/>
-                    <constraints><allowempty>true</allowempty></constraints>
+                    <default />
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition on="property" name="InfoBool">False</condition>
@@ -543,10 +555,11 @@
                         <close>true</close>
                     </control>
                 </setting>
-                <setting id="trakt_token_access" type="boolean" label="32483" help="" parent="authenticate_trakt">
+                <setting id="trakt_token_access" type="boolean" label="32483" help=""
+                    parent="authenticate_trakt">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <visible>false</visible>
                     <enable>false</enable>
                 </setting>
@@ -558,7 +571,7 @@
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="!is" setting="trakt_token"/>
+                            <condition operator="!is" setting="trakt_token" />
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
@@ -622,7 +635,7 @@
                 <setting id="default_player_provider" type="boolean" label="32466" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="default_player_kodi" type="integer" label="32400" help="">
                     <level>0</level>
@@ -634,19 +647,19 @@
                             <option label="413">2</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
             </group>
             <group id="2" label="32329">
                 <setting id="combined_players" type="boolean" label="32415" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="bundled_players" type="boolean" label="32037" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="players_url" type="string" label="32016" help="">
                     <level>0</level>
@@ -663,14 +676,14 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="button" format="action"/>
+                    <control type="button" format="action" />
                 </setting>
             </group>
             <group id="3" label="32138">
                 <setting id="tmdb_user_rate_after_watching" type="boolean" label="32139" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <dependencies>
                         <dependency type="visible" operator="!is" setting="tmdb_user_token"></dependency>
                     </dependencies>
@@ -678,7 +691,7 @@
                 <setting id="trakt_scrobbling" type="boolean" label="32529" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                     <dependencies>
                         <dependency type="visible" operator="!is" setting="trakt_token"></dependency>
                     </dependencies>
@@ -696,15 +709,16 @@
                         <data>RunScript(plugin.video.themoviedb.helper,provider_allowlist)</data>
                     </control>
                 </setting>
-                <setting id="service_container_content_fallback" type="boolean" label="32497" help="32498">
+                <setting id="service_container_content_fallback" type="boolean" label="32497"
+                    help="32498">
                     <level>0</level>
                     <default>False</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="service_prefers_online_clearlogo" type="boolean" label="32129" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="2" label="32499">
@@ -749,43 +763,43 @@
                 <setting id="contextmenu_related_lists" type="boolean" label="32235" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_sync_trakt" type="boolean" label="32295" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_sync_tmdb" type="boolean" label="32522" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_refresh_details" type="boolean" label="32233" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_modify_artwork" type="boolean" label="32118" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_add_to_library" type="boolean" label="20444" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="contextmenu_make_node" type="boolean" label="32496" help="">
                     <level>0</level>
                     <default>true</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="4" label="39123">
                 <setting id="genre_icon_location" type="path" label="32505" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <sources>
                             <source>files</source>
@@ -798,7 +812,7 @@
                 </setting>
                 <setting id="trakt_genre_icon_location" type="path" label="32507" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <sources>
                             <source>files</source>
@@ -811,7 +825,7 @@
                 </setting>
                 <setting id="provider_icon_location" type="path" label="32506" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <sources>
                             <source>files</source>
@@ -827,17 +841,17 @@
                 <setting id="startup_notifications" type="boolean" label="32468" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="sync_notifications" type="boolean" label="32534" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="connection_notifications" type="boolean" label="32471" help="">
                     <level>0</level>
                     <default>True</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
         </category>
@@ -858,7 +872,7 @@
                             <option>5.0</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
                 <setting id="dummy_delay" type="string" label="32363" help="">
                     <level>0</level>
@@ -875,26 +889,26 @@
                             <option>3.0</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="spinner" format="string" />
                 </setting>
                 <setting id="only_resolve_strm" type="boolean" label="32373" help="">
                     <level>0</level>
                     <default>False</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="2" label="14200">
                 <setting id="force_recache_kodidb" type="boolean" label="32508" help="">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
             </group>
             <group id="3" label="29921">
                 <setting id="use_alternate_api_url" type="boolean" label="32509">
                     <level>0</level>
                     <default>False</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="max_threads" type="integer" label="32410" help="">
                     <level>0</level>
@@ -910,7 +924,7 @@
                 </setting>
                 <setting id="cache_location" type="path" label="32409" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <sources>
                             <source>files</source>
@@ -923,7 +937,7 @@
                 </setting>
                 <setting id="image_location" type="path" label="32472" help="">
                     <level>0</level>
-                    <default/>
+                    <default />
                     <constraints>
                         <sources>
                             <source>files</source>
@@ -939,12 +953,12 @@
                 <setting id="timer_reports" type="boolean" label="32395" help="">
                     <level>0</level>
                     <default>False</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="debug_logging" type="boolean" label="32066" help="">
                     <level>0</level>
                     <default>False</default>
-                    <control type="toggle"/>
+                    <control type="toggle" />
                 </setting>
                 <setting id="log_request_tmdb" type="action" label="32348" help="">
                     <level>0</level>
@@ -952,7 +966,7 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="button" format="action"/>
+                    <control type="button" format="action" />
                 </setting>
                 <setting id="log_request_trakt" type="action" label="32347" help="">
                     <level>0</level>
@@ -960,7 +974,110 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
-                    <control type="button" format="action"/>
+                    <control type="button" format="action" />
+                </setting>
+            </group>
+        </category>
+        <category id="performance" label="32600" help="">
+            <group id="1" label="32601">
+                <setting id="use_connection_pool" type="boolean" label="32602" help="32603">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="max_connections_per_host" type="integer" label="32604" help="32605">
+                    <level>0</level>
+                    <default>8</default>
+                    <constraints>
+                        <minimum>2</minimum>
+                        <step>1</step>
+                        <maximum>20</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+            </group>
+            <group id="2" label="32606">
+                <setting id="use_memory_cache" type="boolean" label="32607" help="32608">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="memory_cache_size" type="integer" label="32609" help="32610">
+                    <level>0</level>
+                    <default>500</default>
+                    <constraints>
+                        <minimum>100</minimum>
+                        <step>100</step>
+                        <maximum>2000</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="use_memory_cache">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="memory_cache_ttl" type="integer" label="32611" help="32612">
+                    <level>0</level>
+                    <default>300</default>
+                    <constraints>
+                        <minimum>60</minimum>
+                        <step>60</step>
+                        <maximum>3600</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="use_memory_cache">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+            </group>
+            <group id="3" label="32613">
+                <setting id="enable_rate_limiting" type="boolean" label="32614" help="32615">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="requests_per_second" type="integer" label="32616" help="32617">
+                    <level>0</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>20</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enable_rate_limiting">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="burst_limit" type="integer" label="32618" help="32619">
+                    <level>0</level>
+                    <default>15</default>
+                    <constraints>
+                        <minimum>5</minimum>
+                        <step>5</step>
+                        <maximum>50</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enable_rate_limiting">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
             </group>
         </category>

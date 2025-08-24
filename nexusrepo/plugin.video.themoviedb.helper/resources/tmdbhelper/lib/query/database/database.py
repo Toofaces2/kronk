@@ -137,8 +137,7 @@ class FindQueriesDatabase(
         return mapping_function(data) if mapping_function else data
 
     def set_cached_values(self, table, keys, values, item_id=None, expiry=DEFAULT_EXPIRY, overwrite=True):
-        with self.access.connection.open() as connection:
-            connection.execute('BEGIN')
-            self.set_expiry(f'{table}.{item_id}' if item_id else table, expiry=expiry) if expiry else None
+        with self.access.connection.open():
+            if expiry:
+                self.set_expiry(f'{table}.{item_id}' if item_id else table, expiry=expiry)
             self.access.set_cached_list_values(table, keys=keys, values=values, overwrite=overwrite)
-            connection.execute('COMMIT')

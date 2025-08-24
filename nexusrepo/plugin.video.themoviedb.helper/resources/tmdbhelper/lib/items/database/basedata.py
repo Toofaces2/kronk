@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from jurialmunkey.ftools import cached_property
 from tmdbhelper.lib.files.dbfunc import DatabaseAccess
 from tmdbhelper.lib.addon.tmdate import set_timestamp
@@ -85,15 +87,16 @@ class ItemDetailsDatabaseAccess(DatabaseAccess):
         return self.table
 
     @property
-    def values(self):  # WHERE conditions values for ?
+    def values(self):
         return (self.item_id, )
 
     def get_configure_mapped_data(self, data, k):
-        if k == 'tvshow_id':
-            return self.tvshow_id
-        if k == 'season_id':
-            return self.season_id
-        return data[self.item_info][k]
+        # A dictionary lookup is more performant than an if/elif chain
+        lookup = {
+            'tvshow_id': getattr(self, 'tvshow_id', None),
+            'season_id': getattr(self, 'season_id', None),
+        }
+        return lookup.get(k, data[self.item_info][k])
 
     def configure_mapped_data(self, data):
         return {self.item_id: [self.get_configure_mapped_data(data, k) for k in self.keys]}

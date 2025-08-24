@@ -4,15 +4,13 @@ from tmdbhelper.lib.addon.consts import NO_UNAIRED_LABEL
 from tmdbhelper.lib.addon.plugin import get_setting, executebuiltin, get_localized
 from tmdbhelper.lib.api.contains import CommonContainerAPIs
 from tmdbhelper.lib.addon.logger import TimerList
-
-
-""" Lazyimports
 from tmdbhelper.lib.items.kodi import KodiDb
-"""
+from tmdbhelper.lib.items.filters import is_excluded
+from tmdbhelper.lib.items.trakt import TraktPlayData
 
 
 class ItemCache:
-    def __init__(self, filename, cache_days=0.25):  # 6 hours default cache
+    def __init__(self, filename, cache_days=0.25):
         from tmdbhelper.lib.files.bcache import BasicCache
         self.cache = BasicCache(filename=filename)
         self.cache_days = cache_days
@@ -31,25 +29,23 @@ use_item_cache = ItemCache
 
 class ContainerDirectoryCommon(CommonContainerAPIs):
     default_cacheonly = False
-    update_listing = False  # endOfDirectory(updateListing=) set True to replace current path
-    plugin_category = ''  # Container.PluginCategory / ListItem.Property(widget)
-    container_content = ''  # Container.Content({})
-    container_update = ''  # Add path to call Containr.Update({}) at end of directory
-    container_refresh = False  # True call Container.Refresh at end of directory
+    update_listing = False
+    plugin_category = ''
+    container_content = ''
+    container_update = ''
+    container_refresh = False
     sort_by_dbid = False
     kodi_db = None
     thumb_override = 0
 
     def __init__(self, handle, paramstring, **kwargs):
-        # Log Settings
         self.log_timers = get_setting('timer_reports')
         self.timer_lists = {}
 
-        # plugin:// params configuration
-        self.handle = handle  # plugin:// handle
-        self.paramstring = paramstring  # plugin://plugin.video.themoviedb.helper?paramstring
-        self.params = kwargs  # paramstring dictionary
-        self.parent_params = self.params.copy()  # TODO: CLEANUP
+        self.handle = handle
+        self.paramstring = paramstring
+        self.params = kwargs
+        self.parent_params = self.params.copy()
         self.filters = {
             'filter_key': self.params.get('filter_key', None),
             'filter_value': self.params.get('filter_value', None),
@@ -59,7 +55,7 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
             'exclude_operator': self.params.get('exclude_operator', None)
         }
 
-        self.sort_methods = []  # List of kwargs dictionaries [{'sortMethod': SORT_METHOD_UNSORTED}]
+        self.sort_methods = []
         self.property_params = {}
 
     @cached_property
@@ -88,12 +84,10 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
 
     @cached_property
     def is_excluded(self):
-        from tmdbhelper.lib.items.filters import is_excluded
         return is_excluded
 
     @cached_property
     def trakt_playdata(self):
-        from tmdbhelper.lib.items.trakt import TraktPlayData
         return TraktPlayData(
             watchedindicators=get_setting('trakt_watchedindicators'),
             pauseplayprogress=get_setting('trakt_watchedindicators'))
@@ -109,14 +103,13 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
     @cached_property
     def kodi_db_preferred(self):
         if get_setting('use_kodi_local_db', 'int') == 2:
-            return True  # Overwrite TMDb data with Kodi DB data
-        return False  # Compliment missing TMDb data with Kodi Db data
+            return True
+        return False
 
     def get_kodi_database(self, tmdb_type):
         if get_setting('use_kodi_local_db', 'int') == 0:
             return
         with TimerList(self.timer_lists, 'get_kodi', log_threshold=0.001, logging=self.log_timers):
-            from tmdbhelper.lib.items.kodi import KodiDb
             return KodiDb(tmdb_type)
 
     @cached_property
@@ -137,24 +130,21 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
 
         def finalise_next_page():
             li.params['cacheonly'] = self.is_cacheonly
-            li.params['plugin_category'] = self.plugin_category  # Carry the plugin category to next page in plugin:// path
+            li.params['plugin_category'] = self.plugin_category
             return li.finalise()
 
         def finalise_mediaitem():
-            # Check if unaired and either apply special formatting or hide item depending on user settings
             li.format_unaired_labels = bool(self.format_unaired_labels and not li.infoproperties.get('specialseason'))
             if li.format_unaired_labels and self.hide_unaired and li.is_unaired:
                 return
             if li.format_unaired_labels and self.only_unaired and not li.is_unaired:
                 return
 
-            # Add details from Kodi library
             try:
                 li.set_details(details=self.kodi_db.get_kodi_details(li), reverse=self.kodi_db_preferred)
             except AttributeError:
                 pass
 
-            # Filter out items that are excluded (done after adding Kodi details so can filter against them)
             if self.is_excluded(li, is_listitem=True, **self.filters):
                 return
 
@@ -168,9 +158,9 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
         return finalise_next_page() if li.next_page else finalise_mediaitem()
 
     def make_items(self, items):
-        make_items = [self.make_item(i) for i in items if i]
-        make_items = self.sort_items_by_dbid(make_items) if self.sort_by_dbid else make_items
-        return make_items
+        items = [self.make_item(i) for i in items if i]
+        items = self.sort_items_by_dbid(items) if self.sort_by_dbid else items
+        return items
 
     def sort_items_by_dbid(self, items):
         items_dbid = [li for li in items if li and li.infolabels.get('dbid')]
@@ -182,14 +172,9 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
         return items
 
     def build_items(self, items):
-        """ Build items in threads """
-
         items = self.build_detailed_items(items)
-
-        # Finalise listitems in parallel threads
         with TimerList(self.timer_lists, '--make', log_threshold=0.001, logging=self.log_timers):
             items = self.make_items(items)
-
         return items
 
     def add_items(self, items):
@@ -208,17 +193,21 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
             len(response.get('episodes', []))
         ]
 
-        if lengths.index(max(lengths)) == 0:
-            self.container_content = 'movies'
-        elif lengths.index(max(lengths)) == 1:
-            self.container_content = 'tvshows'
-        elif lengths.index(max(lengths)) == 2:
-            self.container_content = 'actors'
-        elif lengths.index(max(lengths)) == 3:
-            self.container_content = 'seasons'
-        elif lengths.index(max(lengths)) == 4:
-            self.container_content = 'episodes'
+        # Use a more performant dictionary-based approach
+        content_map = {
+            'movies': 'movies',
+            'shows': 'tvshows',
+            'persons': 'actors',
+            'seasons': 'seasons',
+            'episodes': 'episodes'
+        }
+        
+        # Determine the content based on the longest list
+        longest_list_index = lengths.index(max(lengths))
+        content_keys = list(content_map.keys())
+        self.container_content = content_map[content_keys[longest_list_index]]
 
+        # Set the Kodi DB based on the content type
         if lengths[0] and (lengths[1] or lengths[3] or lengths[4]):
             self.kodi_db = self.get_kodi_database('both')
         elif lengths[0]:
@@ -232,13 +221,13 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
             return params
         from xbmcplugin import setProperty
         for k, v in params.items():
-            setProperty(self.handle, k, v)  # Set params to container properties
+            setProperty(self.handle, k, v)
         return params
 
     def finish_container(self):
         from xbmcplugin import setPluginCategory, setContent, endOfDirectory, addSortMethod
-        setPluginCategory(self.handle, self.plugin_category)  # Container.PluginCategory
-        setContent(self.handle, self.container_content)  # Container.Content
+        setPluginCategory(self.handle, self.plugin_category)
+        setContent(self.handle, self.container_content)
         for i in self.sort_methods:
             addSortMethod(self.handle, **i)
         endOfDirectory(self.handle, updateListing=self.update_listing)
@@ -264,53 +253,40 @@ class ContainerDirectoryCommon(CommonContainerAPIs):
         self.params['tmdb_id'] = self.query_database.get_tmdb_id(**self.params)
 
     def get_items(self, **kwargs):
-        """ Abstract method for getting items
-        """
         return
 
     def get_directory(self, items_only=False, build_items=True):
-
         with TimerList(self.timer_lists, 'total', logging=self.log_timers):
             self.trakt_playdata.pre_sync_start(**self.params)
-
             with TimerList(self.timer_lists, 'get_list', logging=self.log_timers):
                 items = self.get_items(**self.params)
-
             if not items:
                 return
-
             if not build_items:
                 return items
-
             self.property_params.update(self.set_params_to_container())
             self.plugin_category = self.params.get('plugin_category') or self.plugin_category
-
             with TimerList(self.timer_lists, '--sync', log_threshold=0.001, logging=self.log_timers):
                 self.trakt_playdata.pre_sync_join()
-
             with TimerList(self.timer_lists, 'add_items', logging=self.log_timers):
                 items = self.build_items(items)
                 if items_only:
                     return items
                 self.add_items(items)
             self.finish_container()
-
         if self.log_timers:
             from tmdbhelper.lib.files.futils import write_to_file
             from tmdbhelper.lib.addon.logger import log_timer_report
             from tmdbhelper.lib.addon.tmdate import get_todays_date
             report_data = log_timer_report(self.timer_lists, self.paramstring, logging=False)
             write_to_file(''.join(report_data), 'timer_report', f'{get_todays_date()}.txt', join_addon_data=True, append_to_file=True)
-
         if self.container_update:
             executebuiltin(f'Container.Update({self.container_update})')
-
         if self.container_refresh:
             executebuiltin('Container.Refresh')
 
 
 class ContainerDirectory(ContainerDirectoryCommon):
-
     @cached_property
     def lidc_cache_refresh(self):
         if self.is_cacheonly:

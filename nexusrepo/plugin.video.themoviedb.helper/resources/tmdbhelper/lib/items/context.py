@@ -77,26 +77,28 @@ class ContextMenu():
 
     def get(self, context=None):
         context = context or CONTEXT_MENU_ITEMS
+        # Filter out disabled items before building them
+        filtered_context = {
+            name: data for name, data in context.items()
+            if get_setting(data.get('setting'))
+        }
         return [(name, str(item)) for name, item in (
-            (name, self._build_item(mediatypes)) for name, mediatypes in context.items()) if item]
+            (name, self._build_item(mediatypes)) for name, mediatypes in filtered_context.items()) if item]
 
     def _build_item(self, mediatypes):
         params_def = mediatypes.get(self.mediatype, mediatypes.get('other'))
         router_def = mediatypes.get('command')
         if not params_def or not router_def:
             return
-
-        if not get_setting(mediatypes['setting']):
-            return
-
+        
         item = {}
         for k, v in params_def.items():
-            try:  # Need to try accept in case hard-coded int/bool etc.
+            try:
                 value = v.format(**self.info)
             except AttributeError:
                 value = v
             if value in ['None', '', None]:
-                return  # Don't create a context item if we don't have a formatter value
+                return
             item[k] = value
 
         router_str = ','.join([f'{k}={v}' for k, v in item.items()])

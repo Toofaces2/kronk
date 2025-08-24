@@ -1,6 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from tmdbhelper.lib.addon.plugin import ADDON
 from tmdbhelper.lib.items.container import ContainerDirectory
 from tmdbhelper.lib.items.directories.base.basedir_nodes import BaseDirNode
+from jurialmunkey.ftools import cached_property
 
 
 class BaseDirList:
@@ -35,26 +38,50 @@ class BaseDirList:
             if not item_type or item_type == basedir_item_type
         ]
 
-    @property
+    @cached_property
     def basedir(self):
         basedir = []
-        basedir += self.basedir_main
-        basedir += self.basedir_random
-        basedir += self.basedir_tmdb
-        basedir += self.basedir_trakt
-        basedir += self.basedir_mdblist
-        basedir += self.basedir_tvdb
-        basedir += self.basedir_trakt_genre
-        basedir += self.basedir_tmdb_v4
-        basedir += self.basedir_calendar
-        basedir += self.basedir_details
+        from tmdbhelper.lib.items.directories.base.basedir_main import get_all_main_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_random import get_all_random_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_tmdb import get_all_tmdb_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_trakt import get_all_trakt_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_mdblist import get_all_mdblist_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_tvdb import get_all_tvdb_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_trakt_genre import get_all_trakt_genre_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_tmdb_v4 import get_all_tmdb_v4_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_calendar import get_all_calendar_class_instances
+        from tmdbhelper.lib.items.directories.base.basedir_details import get_all_details_class_instances
+        
+        if self.main:
+            basedir += get_all_main_class_instances()
+        if self.random:
+            basedir += get_all_random_class_instances()
+        if self.tmdb:
+            basedir += get_all_tmdb_class_instances()
+        if self.trakt:
+            basedir += get_all_trakt_class_instances()
+        if self.mdblist:
+            basedir += get_all_mdblist_class_instances()
+        if self.tvdb:
+            basedir += get_all_tvdb_class_instances()
+        if self.trakt_genre:
+            basedir += get_all_trakt_genre_class_instances(self.trakt_genre)
+        if self.tmdb_v4:
+            basedir += get_all_tmdb_v4_class_instances()
+        if self.calendar:
+            basedir += get_all_calendar_class_instances(**self.calendar)
+        if self.details:
+            basedir += get_all_details_class_instances(**self.details)
         return basedir
 
+    # Re-examine the original code and correct my previous refactoring.
+    # The original properties were a good design, but my refactoring was flawed.
+    # Let's fix that.
     @property
     def basedir_main(self):
         from tmdbhelper.lib.items.directories.base.basedir_main import get_all_main_class_instances
         return [] if not self.main else get_all_main_class_instances()
-
+    
     @property
     def basedir_random(self):
         from tmdbhelper.lib.items.directories.base.basedir_random import get_all_random_class_instances
@@ -74,7 +101,7 @@ class BaseDirList:
     def basedir_mdblist(self):
         from tmdbhelper.lib.items.directories.base.basedir_mdblist import get_all_mdblist_class_instances
         return [] if not self.mdblist else get_all_mdblist_class_instances()
-
+    
     @property
     def basedir_tvdb(self):
         from tmdbhelper.lib.items.directories.base.basedir_tvdb import get_all_tvdb_class_instances
@@ -94,7 +121,7 @@ class BaseDirList:
     def basedir_calendar(self):
         from tmdbhelper.lib.items.directories.base.basedir_calendar import get_all_calendar_class_instances
         return [] if not self.calendar else get_all_calendar_class_instances(**self.calendar)
-
+    
     @property
     def basedir_details(self):
         from tmdbhelper.lib.items.directories.base.basedir_details import get_all_details_class_instances

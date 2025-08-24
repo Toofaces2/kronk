@@ -2,21 +2,19 @@
 # -*- coding: utf-8 -*-
 from tmdbhelper.lib.api.mapping import _ItemMapper
 from collections import namedtuple
-
+from jurialmunkey.parser import try_int, try_float
+from tmdbhelper.lib.addon.consts import IMAGEPATH_ASPECTRATIO
+import urllib.request as urllib
+import hashlib
+import os.path
+import io
+import xbmcvfs
+import colorsys
 
 ExtendedMap = namedtuple("ExtendedMap", "base unique_id overwrite data")
 
 
-# Consts for wrangling FTV artwork into shape
-FTV_WITHOUT_SEASONS = 0
-FTV_TVSHOWS_SEASONS = 1
-FTV_SEASONS_SEASONS = 2
-
-
 def get_blanks_none(i):
-    """
-    Convert empty strings to nulls
-    """
     return i if i or i == 0 else None
 
 
@@ -32,7 +30,6 @@ class ItemMapperMethods:
 
     @staticmethod
     def add_art_type(item_id, image_path, image_type, ratio_type):
-        from tmdbhelper.lib.addon.consts import IMAGEPATH_ASPECTRATIO
         return {
             'parent_id': item_id,
             'aspect_ratio': IMAGEPATH_ASPECTRATIO.index(ratio_type),
@@ -91,9 +88,9 @@ class ItemMapperMethods:
         if episode_number == 1:
             return 'series_premiere' if season_number == 1 else 'season_premiere'
         if episode_type == 'finale':
-            return 'season_finale'  # TODO: Series finale currently calculated as part of last_aired (checks status as cancelled/ended and assumes last_aired episode is finale)
+            return 'season_finale'
         if episode_type == 'mid_season':
-            return 'mid_season_finale'  # TODO: Calculate mid season premiere (might be a real pain to do)
+            return 'mid_season_finale'
         return 'standard'
 
     @staticmethod
@@ -148,17 +145,14 @@ class ItemMapperMethods:
 
     def get_belongs_to_collection(self, i, **kwargs):
         data = []
-
         item_id = f"movie.{self.tmdb_id}"
         collection_id = f"collection.{i['id']}"
-
         collection_item = ItemMapperMethods.get_configured_item(i, **{
             'tmdb_id': 'id',
             'title': 'name',
         })
         collection_item['id'] = collection_id
         data.append(ExtendedMap('collection', collection_id, False, collection_item))
-
         for image_path, image_type, ratio_type in (
             ('poster_path', 'posters', 'poster'),
             ('backdrop_path', 'backdrops', 'landscape')
@@ -166,75 +160,60 @@ class ItemMapperMethods:
             image_path = i.get(image_path)
             if not image_path:
                 continue
-
             data.append(ExtendedMap('art', image_path, False, ItemMapperMethods.add_art_type(
                 item_id=item_id,
                 image_path=image_path,
                 image_type=image_type,
                 ratio_type=ratio_type
             )))
-
         data.append(ExtendedMap('belongs', item_id, False, {
             'id': item_id,
             'parent_id': collection_id,
         }))
-
         data.append(ExtendedMap('baseitem', collection_id, False, {
             'id': collection_id,
             'mediatype': 'set',
             'expiry': 0,
             'language': self.language,
         }))
-
         return data
 
     def get_collection(self, collection_object, **kwargs):
         data = []
-
         if not collection_object:
             return data
-
         collection_id = f"collection.{collection_object['id']}"
-
         for i in (collection_object.get('parts') or []):
             data.extend(self.get_media_item_data(i, 'movie'))
             data.append(ExtendedMap('belongs', f'movie.{i["id"]}', False, {
                 'id': f'movie.{i["id"]}',
                 'parent_id': collection_id,
             }))
-
         return data
 
     def get_parts(self, parts, **kwargs):
         data = []
-
         if not parts:
             return data
-
         collection_id = f"collection.{self.tmdb_id}"
-
         for i in parts:
             data.extend(self.get_media_item_data(i, 'movie'))
             data.append(ExtendedMap('belongs', f'movie.{i["id"]}', False, {
                 'id': f'movie.{i["id"]}',
                 'parent_id': collection_id,
             }))
-
         return data
 
     def get_creators(self, items, **kwargs):
         data = []
-
         for i in items:
             item_id = f'person.{i["id"]}'
             tmdb_id = i['id']
-
             data.append(ExtendedMap('crewmember', item_id, False, {
                 'tmdb_id': tmdb_id,
                 'role': 'Creator',
                 'department': 'Creator',
             }))
-
             person_item = ItemMapperMethods.get_configured_item(i, **{
                 'name': 'name',
                 'gender': 'gender',
@@ -242,7 +221,6 @@ class ItemMapperMethods:
             person_item['id'] = item_id
             person_item['tmdb_id'] = tmdb_id
             data.append(ExtendedMap('person', item_id, False, person_item))
-
             if i.get('profile_path'):
                 artwork = ItemMapperMethods.add_art_type(
                     item_id=item_id,
@@ -250,23 +228,19 @@ class ItemMapperMethods:
                     image_type='profiles',
                     ratio_type='poster')
                 data.append(ExtendedMap('art', artwork['icon'], False, artwork))
-
             data.append(ExtendedMap('baseitem', item_id, False, {
                 'id': item_id,
                 'mediatype': 'person',
                 'expiry': 0,
                 'language': self.language,
             }))
-
         return data
 
     def get_episode_to_air(self, i, **kwargs):
         data = []
-
         item_id = f'tv.{self.tmdb_id}.{i["season_number"]}.{i["episode_number"]}'
         season_id = f'tv.{self.tmdb_id}.{i["season_number"]}'
         tvshow_id = f'tv.{self.tmdb_id}'
-
         episode_item = ItemMapperMethods.get_configured_item(i, **{
             'episode': 'episode_number',
             'premiered': 'air_date',
@@ -280,32 +254,26 @@ class ItemMapperMethods:
         episode_item['id'] = item_id
         episode_item['season_id'] = season_id
         episode_item['tvshow_id'] = tvshow_id
-
         if not self.data.get('in_production') and not self.data.get('next_episode_to_air'):
             episode_item['status'] = 'series_finale'
-
         data.append(ExtendedMap('episode', item_id, False, episode_item))
-
         data.append(ExtendedMap('season', season_id, False, {
             'id': season_id,
             'tvshow_id': tvshow_id,
             'season': i['season_number'],
         }))
-
         data.append(ExtendedMap('baseitem', item_id, False, {
             'id': item_id,
             'mediatype': 'episode',
             'expiry': 0,
             'language': self.language,
         }))
-
         data.append(ExtendedMap('baseitem', season_id, False, {
             'id': season_id,
             'mediatype': 'season',
             'expiry': 0,
             'language': self.language,
         }))
-
         if i.get('still_path'):
             artwork = ItemMapperMethods.add_art_type(
                 item_id=item_id,
@@ -313,11 +281,8 @@ class ItemMapperMethods:
                 image_type='stills',
                 ratio_type='landscape')
             data.append(ExtendedMap('art', artwork['icon'], False, artwork))
-
-        # Use last/next aired duration if available for tvshow duration
         if episode_item.get('duration') and not self.item['item'].get('duration'):
             self.item['item']['duration'] = episode_item['duration']
-
         return data
 
     credits_mappings = (
@@ -335,26 +300,21 @@ class ItemMapperMethods:
     def get_credits_data(self, items, aggregrate=False):
         data = []
         for subkey, mapkey, config, jobkey in self.credits_mappings:
-
             for i in (items.get(subkey) or []):
                 item_id = f'person.{i["id"]}'
                 tmdb_id = i['id']
-
                 data.append(ExtendedMap('baseitem', item_id, False, {
                     'id': item_id,
                     'mediatype': 'person',
                     'expiry': 0,
                     'language': self.language,
                 }))
-
                 jobs = (i.get(jobkey) or []) if aggregrate else [i]
-
                 for j in jobs:
                     credit_item = ItemMapperMethods.get_configured_item(i, **config)
                     credit_item.update(ItemMapperMethods.get_configured_item(j, blanks=False, **config))
                     credit_item['tmdb_id'] = tmdb_id
                     data.append(ExtendedMap(mapkey, j.get('credit_id'), False, credit_item))
-
                 person_item = ItemMapperMethods.get_configured_item(i, **{
                     'name': 'name',
                     'gender': 'gender',
@@ -363,7 +323,6 @@ class ItemMapperMethods:
                 person_item['id'] = item_id
                 person_item['tmdb_id'] = tmdb_id
                 data.append(ExtendedMap('person', item_id, False, person_item))
-
                 if i.get('profile_path'):
                     artwork = ItemMapperMethods.add_art_type(
                         item_id=item_id,
@@ -371,7 +330,6 @@ class ItemMapperMethods:
                         image_type='profiles',
                         ratio_type='poster')
                     data.append(ExtendedMap('art', artwork['icon'], False, artwork))
-
         return data
 
     def get_person_movie_credits_data(self, items):
@@ -382,33 +340,26 @@ class ItemMapperMethods:
 
     def get_person_credits_data(self, items, tmdb_type='movie'):
         data = []
-
         mappings = (
             ('cast', 'castmember', {'ordering': 'order', 'role': 'character'}),
             ('crew', 'crewmember', {'department': 'department', 'role': 'job'}),
         )
-
         for subkey, mapkey, config in mappings:
             credits = items.get(subkey) or []
             for i in credits:
                 data.extend(self.get_media_item_data(i, tmdb_type))
-
                 credit_item = ItemMapperMethods.get_configured_item(i, **config)
                 credit_item['parent_id'] = f'{tmdb_type}.{i["id"]}'
                 credit_item['tmdb_id'] = self.tmdb_id
                 data.append(ExtendedMap(mapkey, i.get('credit_id'), False, credit_item))
-
         return data
 
     def get_media_item_data(self, i, tmdb_type, **additional_params):
         data = []
-
         item_id = f'{tmdb_type}.{i["id"]}'
-
         mediatype = 'movie' if tmdb_type == 'movie' else 'tvshow'
         premiered = 'release_date' if mediatype == 'movie' else 'first_air_date'
         titlename = 'title' if mediatype == 'movie' else 'name'
-
         media_item = ItemMapperMethods.get_configured_item(i, **{
             'year': lambda i: int(i[premiered][0:4]),
             'premiered': premiered,
@@ -424,14 +375,12 @@ class ItemMapperMethods:
         media_item['tmdb_id'] = i['id']
         media_item.update(additional_params)
         data.append(ExtendedMap(mediatype, item_id, False, media_item))
-
         data.append(ExtendedMap('baseitem', item_id, False, {
             'id': item_id,
             'mediatype': mediatype,
             'expiry': 0,
             'language': self.language,
         }))
-
         for image_path, image_type, ratio_type in (
             ('poster_path', 'posters', 'poster'),
             ('backdrop_path', 'backdrops', 'landscape')
@@ -449,12 +398,10 @@ class ItemMapperMethods:
 
     def get_episodes(self, items, **kwargs):
         data = []
-
         for i in items:
             item_id = f'tv.{self.tmdb_id}.{i["season_number"]}.{i["episode_number"]}'
             season_id = f'tv.{self.tmdb_id}.{i["season_number"]}'
             tvshow_id = f'tv.{self.tmdb_id}'
-
             episode_item = ItemMapperMethods.get_configured_item(i, **{
                 'episode': 'episode_number',
                 'year': lambda i: int(i['air_date'][0:4]),
@@ -469,9 +416,7 @@ class ItemMapperMethods:
             episode_item['id'] = item_id
             episode_item['season_id'] = season_id
             episode_item['tvshow_id'] = tvshow_id
-
             data.append(ExtendedMap('episode', item_id, True, episode_item))
-
             if i.get('still_path'):
                 artwork = ItemMapperMethods.add_art_type(
                     item_id=item_id,
@@ -479,23 +424,19 @@ class ItemMapperMethods:
                     image_type='stills',
                     ratio_type='landscape')
                 data.append(ExtendedMap('art', artwork['icon'], False, artwork))
-
             data.append(ExtendedMap('baseitem', item_id, False, {
                 'id': item_id,
                 'mediatype': 'episode',
                 'expiry': 0,
                 'language': self.language,
             }))
-
         return data
 
     def get_seasons(self, items, **kwargs):
         data = []
-
         for i in items:
             item_id = f'tv.{self.tmdb_id}.{i["season_number"]}'
             tvshow_id = f'tv.{self.tmdb_id}'
-
             season_item = ItemMapperMethods.get_configured_item(i, **{
                 'season': 'season_number',
                 'year': lambda i: int(i['air_date'][0:4]),
@@ -506,9 +447,7 @@ class ItemMapperMethods:
             })
             season_item['id'] = item_id
             season_item['tvshow_id'] = tvshow_id
-
             data.append(ExtendedMap('season', item_id, True, season_item))
-
             if i.get('poster_path'):
                 artwork = ItemMapperMethods.add_art_type(
                     item_id=item_id,
@@ -516,23 +455,17 @@ class ItemMapperMethods:
                     image_type='posters',
                     ratio_type='poster')
                 data.append(ExtendedMap('art', artwork['icon'], False, artwork))
-
             data.append(ExtendedMap('baseitem', item_id, False, {
                 'id': item_id,
                 'mediatype': 'season',
                 'expiry': 0,
                 'language': self.language
             }))
-
         return data
 
     def get_fanart_tv(self, items, **kwargs):
         if not items:
             return
-
-        # FTV artwork key name, type to map it to, art_has_seasons
-        # Set art_has_seasons to FTV_TVSHOWS_SEASONS for artwork where fanarttv intends "season=all" to be "tvshow" artwork
-        # Set art_has_seasons to FTV_SEASONS_SEASONS for artwork where fanarttv intends "season=all" to be "season" artwork
         art_types = {
             'movieposter': ('poster', FTV_WITHOUT_SEASONS),
             'moviebackground': ('fanart', FTV_WITHOUT_SEASONS),
@@ -556,27 +489,19 @@ class ItemMapperMethods:
             'seasonbanner': ('banner', FTV_SEASONS_SEASONS),
             'seasonthumb': ('landscape', FTV_SEASONS_SEASONS),
         }
-
         data = []
         for art_type, art_list in items.items():
-
             if not isinstance(art_list, list):
                 continue
-
             quality = 1 if art_type.startswith('hd') else 0
-
             art_type = art_types.get(art_type)
             if not art_type:
                 continue
-
             art_type, art_has_seasons = art_type
-
             for art_item in art_list:
                 icon = get_blanks_none(art_item['url'])
-
                 if not icon:
                     continue
-
                 item = {
                     'icon': icon,
                     'iso_language': get_blanks_none(art_item.get('lang')),
@@ -585,32 +510,20 @@ class ItemMapperMethods:
                     'quality': get_blanks_none(quality),
                     'extension': get_blanks_none(icon.split('.')[-1] if icon else None),
                 }
-
                 if art_has_seasons:
-                    # Some artwork on FanartTV uses season=all to indicate tvshow artwork
-                    # While other artwork types use season=all to indicate season artwork for an "all" season...
-                    # Do some gymnastics here to workaround this mess of conflated types
                     snum = (art_item.get('season') or 'all')
-
-                    # Set "All Seasons" artwork to -1 season so we dont pull it in for a tvshow if it is really intended to be an "all" season type
                     if snum == 'all' and art_has_seasons == FTV_SEASONS_SEASONS:
                         snum = -1
-
-                    # Set season artwork with a number ot season type
                     if snum != 'all':
                         parent_id = f'tv.{self.tmdb_id}.{snum}'
-
                         item['parent_id'] = parent_id
-
                         data.append(ExtendedMap('baseitem', parent_id, False, {
                             'id': parent_id,
                             'mediatype': 'season',
                             'expiry': 0,
                             'language': self.language,
                         }))
-
                 data.append(ExtendedMap('fanart_tv', icon, True, item))
-
         return data
 
     @staticmethod
@@ -654,16 +567,14 @@ class ItemMapperMethods:
     def get_art(items, **kwargs):
         if not items:
             return []
-
         data = []
-
         for artwork_type, artworks in items.items():
             for artwork in artworks:
                 path = artwork['file_path']
                 data.append(
                     ExtendedMap('art', get_blanks_none(path), True, {
                         'aspect_ratio': ItemMapperMethods.get_aspect_ratio(artwork['aspect_ratio']),
-                        'quality': int((artwork['width'] * artwork['height']) // 200000),  # Quality integer to nearest fifth of a megapixel
+                        'quality': int((artwork['width'] * artwork['height']) // 200000),
                         'iso_language': get_blanks_none(artwork['iso_639_1']),
                         'icon': get_blanks_none(path),
                         'type': get_blanks_none(artwork_type),
@@ -672,7 +583,6 @@ class ItemMapperMethods:
                         'votes': get_blanks_none(artwork['vote_count'])
                     })
                 )
-
         return data
 
     @staticmethod
@@ -707,10 +617,8 @@ class ItemMapperMethods:
         from tmdbhelper.lib.addon.plugin import get_infolabel
         from tmdbhelper.lib.addon.tmdate import format_date_obj, convert_timestamp, get_days_to_air
         air_date_obj = convert_timestamp(air_date, time_fmt="%Y-%m-%d", time_lim=10, utc_convert=False)
-
         if not air_date_obj:
             return {}
-
         infoproperties = {
             f'{name}': format_date_obj(air_date_obj, region_fmt='dateshort'),
             f'{name}.long': format_date_obj(air_date_obj, region_fmt='datelong'),
@@ -721,10 +629,8 @@ class ItemMapperMethods:
             f'{name}.custom': format_date_obj(air_date_obj, get_infolabel('Skin.String(TMDbHelper.Date.Format)') or '%d %b %Y'),
             f'{name}.original': air_date,
         }
-
         days_to_air, is_aired = get_days_to_air(air_date_obj)
         days_to_air_name = f'{name}.days_from_aired' if is_aired else f'{name}.days_until_aired'
-
         infoproperties[days_to_air_name] = str(days_to_air)
         return infoproperties
 
@@ -749,20 +655,6 @@ class BlankNoneDict(dict):
 class ItemMapper(_ItemMapper, ItemMapperMethods):
     def __init__(self, language, tmdb_id):
         self.blacklist = ()
-        """ Mapping dictionary
-        keys:       list of tuples containing parent and child key to add value. [('parent', 'child')]
-                    parent keys: art, unique_ids, infolabels, infoproperties, params
-                    use UPDATE_BASEKEY for child key to update parent with a dict
-        func:       function to call to manipulate values (omit to skip and pass value directly)
-        (kw)args:   list/dict of args/kwargs to pass to func.
-                    func is also always passed v as first argument
-        type:       int, float, str - convert v to type using try_type(v, type)
-        extend:     set True to add to existing list - leave blank to overwrite exiting list
-        subkeys:    list of sub keys to get for v - i.e. v.get(subkeys[0], {}).get(subkeys[1]) etc.
-                    note that getting subkeys sticks for entire loop so do other ops on base first if needed
-
-        use standard_map for direct one-to-one mapping of v onto single property tuple
-        """
         self.advanced_map = {
             'name': [{
                 'keys': [('item', 'title')]}, {
@@ -874,8 +766,8 @@ class ItemMapper(_ItemMapper, ItemMapperMethods):
             'created_by': self.get_creators,
             'credits': self.get_credits,
             'aggregate_credits': self.get_aggregate_credits,
-            'last_episode_to_air': self.get_episode_to_air,  # Also mapped in advanced properties for item id
-            'next_episode_to_air': self.get_episode_to_air,  # Also mapped in advanced properties for item id
+            'last_episode_to_air': self.get_episode_to_air,
+            'next_episode_to_air': self.get_episode_to_air,
             'movie_credits': self.get_person_movie_credits_data,
             'tv_credits': self.get_person_tv_credits_data,
         }
@@ -912,42 +804,35 @@ class ItemMapper(_ItemMapper, ItemMapperMethods):
 
         for k, v in data.items():
 
-            # Skip blank values
             if v in (None, ''):
                 continue
 
-            # Only some values need extended mappings
             if k not in self.extended_map:
                 continue
 
-            # Make sure the function outputs data
             output = self.extended_map[k](v)
             if not output:
                 continue
 
             for i in output:
 
-                # Make sure unique_id has a value we can use as an ID
                 if not i.unique_id:
                     continue
 
                 dictionary = map_dict.setdefault(i.base, {})
 
-                # Overwrite set so just overwrite and move on
                 if i.overwrite:
                     dictionary[i.unique_id] = i.data
                     continue
 
-                # ID not mapped yet so write it and move on
                 if i.unique_id not in dictionary:
                     dictionary[i.unique_id] = i.data
                     continue
 
-                # Only write new values
                 for ik, iv in i.data.items():
-                    if not dictionary[i.unique_id].get(ik):  # Dont write over existing values
+                    if not dictionary[i.unique_id].get(ik):
                         continue
-                    dictionary[i.unique_id][ik] = iv  # No value set so update it
+                    dictionary[i.unique_id][ik] = iv
 
         for key, dictionary in map_dict.items():
             item[key] = tuple([d for d in dictionary.values()])
@@ -958,7 +843,6 @@ class ItemMapper(_ItemMapper, ItemMapperMethods):
     def get_empty_item():
         return {
 
-            # Default mappings
             'item': BlankNoneDict(),
             'genre': (),
             'country': (),
@@ -972,7 +856,6 @@ class ItemMapper(_ItemMapper, ItemMapperMethods):
             'video': (),
             'unique_id': (),
 
-            # Dictionary mappings
             'custom': (),
             'art': (),
             'baseitem': (),
@@ -993,10 +876,4 @@ class ItemMapper(_ItemMapper, ItemMapperMethods):
         self.item = self.get_empty_item()
         self.item = self.map_item(self.item, data)
         self.item = self.map_dict(self.item, data)
-
-        # from tmdbhelper.lib.files.futils import dumps_to_file
-        # dumps_to_file(
-        #     {'data': self.data, 'item': self.item},
-        #     'log_data', f'mappings_{self.tmdb_id}_{data["name"]}.json', join_addon_data=True)
-
         return self.item

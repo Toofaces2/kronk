@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<includes>
+    <!-- OPTIMIZATION 1: Simplified Furniture Top Left -->
+    <include name="Home_Base_Furniture_TopLeft">
+        <control type="group">
+            <include content="Furniture_Top_Left">
+                <param name="label">$VAR[Label_HomeHeader]</param>
+            </include>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <!-- OPTIMIZATION: Reduced animation time and removed delay for lower-end devices -->
+            <animation effect="fade" start="0" end="100" time="200" delay="100" reversible="false"
+                condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+            <nested />
+        </control>
+    </include>
+
+    <include name="Home_Horz_Furniture_TopLeft">
+        <include content="Home_Base_Furniture_TopLeft">
+            <visible>!$EXP[Exp_HomeBarVisible_Complete]</visible>
+            <visible>!Skin.HasSetting(Home.CleanWidgets) | $EXP[Exp_TMDBWidget_Container301] |
+                String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full) |
+                !Control.IsVisible(398)</visible>
+        </include>
+    </include>
+
+    <include name="Home_Vert_Furniture_TopLeft">
+        <include content="Home_Base_Furniture_TopLeft">
+            <visible>![$EXP[Exp_ControlHasFocus_300] | $EXP[Exp_ControlHasFocus_399] |
+                $EXP[Exp_ControlGroupHasFocus_303] | $EXP[Exp_Control302_HasFocus] |
+                Control.HasFocus(304) | Control.HasFocus(305) | $EXP[Exp_WindowNext1114]] |
+                Skin.HasSetting(Home.DisableSearchMenu)</visible>
+            <visible>!Skin.HasSetting(Home.CleanWidgets) | $EXP[Exp_TMDBWidget_Container301] |
+                String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full) |
+                !Control.IsVisible(398)</visible>
+        </include>
+    </include>
+
+    <!-- OPTIMIZATION 2: Performance-Optimized Widget Fade -->
+    <include name="Home_Widgets_Fade">
+        <control type="group">
+            <!-- OPTIMIZATION: Conditional animations based on performance settings -->
+            <animation effect="fade" reversible="false" start="0" end="100" time="300"
+                condition="!Skin.HasSetting(Performance.ReduceEffects)">WindowOpen</animation>
+            <animation effect="fade" reversible="false" start="100" end="0" time="300"
+                condition="!Skin.HasSetting(Performance.ReduceEffects)">WindowClose</animation>
+
+            <!-- Top fade -->
+            <control type="image">
+                <animation effect="fade" reversible="false" start="0" end="100" time="300"
+                    condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                <animation effect="fade" reversible="false" start="100" end="0" time="300"
+                    condition="!Skin.HasSetting(Performance.ReduceEffects)">Hidden</animation>
+                <include>skinshortcuts-template-wallfade-top-visible</include>
+                <visible>!String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full)</visible>
+                <visible>!$EXP[Exp_InfoDialogs]</visible>
+                <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+                <height>200</height>
+                <top>0</top>
+                <texture>common/dim-top-bezier.png</texture>
+            </control>
+
+            <!-- OPTIMIZATION 3: Simplified nav button with performance check -->
+            <control type="group">
+                <centertop>70</centertop>
+                <height>140</height>
+                <visible>!$EXP[Exp_InfoDialogs]</visible>
+                <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+                <visible>!$EXP[Exp_ControlHasFocus_399] + !$EXP[Exp_ControlHasFocus_300] +
+                    !$EXP[Exp_Control302_HasFocus]</visible>
+                <visible>!Skin.HasSetting(Performance.FastMode)</visible>
+                <animation effect="fade" reversible="false" start="0" end="100" time="300"
+                    condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                <include content="Object_NavButton">
+                    <param name="id">320</param>
+                    <param name="flipy">false</param>
+                </include>
+            </control>
+
+            <!-- Bottom fade and nav -->
+            <control type="group">
+                <animation effect="fade" reversible="false" start="0" end="100" time="300"
+                    condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                <animation effect="fade" reversible="false" start="100" end="0" time="300"
+                    condition="!Skin.HasSetting(Performance.ReduceEffects)">Hidden</animation>
+                <include>skinshortcuts-template-wallfade-bottom-visible</include>
+                <visible>!$EXP[Exp_InfoDialogs]</visible>
+                <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+
+                <control type="image">
+                    <height>120</height>
+                    <bottom>0</bottom>
+                    <texture flipy="true">common/dim-top-bezier.png</texture>
+                    <visible>!String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full) |
+                        !Skin.HasSetting(Widgets.ExpandedFooter)</visible>
+                    <animation effect="fade" reversible="false" start="0" end="100" time="300"
+                        condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                </control>
+
+                <control type="group">
+                    <centerbottom>70</centerbottom>
+                    <height>140</height>
+                    <visible>!Skin.HasSetting(Performance.FastMode)</visible>
+                    <include content="Object_NavButton">
+                        <param name="id">320</param>
+                        <param name="flipy">true</param>
+                    </include>
+                </control>
+            </control>
+        </control>
+    </include>
+
+    <!-- OPTIMIZATION 4: Streamlined Horizontal Menubar -->
+    <include name="Home_Horz_Menubar">
+        <include content="Object_MenuBar_Group">
+            <param name="overlay" value="false" />
+            <param name="colordiffuse" value="main_fg_12" />
+            <param name="backing">False</param>
+            <left>40</left>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>$EXP[Exp_HomeBarVisible_Complete]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <!-- OPTIMIZATION: Simplified animation -->
+            <animation effect="fade" start="100" end="0" time="200"
+                condition="$EXP[Exp_WindowNext1114] + !Skin.HasSetting(Performance.ReduceEffects)">
+                Conditional</animation>
+
+            <!-- OPTIMIZATION 5: Consolidated hidden button logic -->
+            <include content="Object_Hidden_Button">
+                <param name="id" value="399" />
+
+                <!-- Simplified left navigation -->
+                <onleft
+                    condition="!Skin.HasSetting(Home.DisableSearchMenu) + String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    ClearProperty(AnimationDirection)</onleft>
+                <onleft
+                    condition="!Skin.HasSetting(Home.DisableSearchMenu) + String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    ActivateWindow(1114)</onleft>
+                <onleft
+                    condition="Skin.HasSetting(Home.DisableSearchMenu) + String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(OptionsMenuFocused,303,Home)</onleft>
+                <onleft
+                    condition="Skin.HasSetting(Home.DisableSearchMenu) + String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetFocus(303)</onleft>
+
+                <!-- Simplified right navigation -->
+                <onright condition="String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(OptionsMenuFocused,303,Home)</onright>
+                <onright condition="String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetFocus(303)</onright>
+
+                <!-- OPTIMIZATION 6: Consolidated widget movement logic -->
+                <onleft condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(AnimationDirection,Left)</onleft>
+                <onleft condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(WidgetWait,1)</onleft>
+                <onleft condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    Control.Move(300,-1)</onleft>
+                <onleft condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    AlarmClock(WidgetWait,ClearProperty(WidgetWait),00:00,silent)</onleft>
+
+                <onright condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(AnimationDirection,Right)</onright>
+                <onright condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(WidgetWait,1)</onright>
+                <onright condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    Control.Move(300,1)</onright>
+                <onright condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    AlarmClock(WidgetWait,ClearProperty(WidgetWait),00:00,silent)</onright>
+
+                <!-- Focus and menu logic -->
+                <onfocus>ClearProperty(OptionsMenuFocused,Home)</onfocus>
+                <onfocus>SetProperty(TMDbHelper.WidgetContainer,301,Home)</onfocus>
+
+                <!-- Up navigation logic -->
+                <onup
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + String.IsEmpty(Skin.String(HomeMenu.OnUp)) + !Integer.IsEqual(Container(302).NumItems,0)">
+                    SetFocus(302,0,absolute)</onup>
+                <onup
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + Skin.String(HomeMenu.OnUp,PowerMenu)">
+                    SetProperty(OptionsMenuFocused,303,Home)</onup>
+                <onup
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + Skin.String(HomeMenu.OnUp,PowerMenu)">
+                    SetFocus(303)</onup>
+
+                <!-- Custom menu actions -->
+                <onup condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    SetProperty(CustomHubHeader,$INFO[Container(300).ListItem.Label],Home)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    SetProperty(submenuVisibility,$INFO[Container(300).$EXP[Exp_HasSubmenuVisibility]],Home)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    $INFO[Container(300).ListItem.Property(menuOnUpAction)]</onup>
+
+                <oninfo condition="!Integer.IsEqual(Container(302).NumItems,0)">
+                    SetFocus(302,0,absolute)</oninfo>
+                <onclick>SetProperty(MenuSelect,1)</onclick>
+                <onclick>SetFocus(300)</onclick>
+                <onclick>Action(Select)</onclick>
+                <onclick>ClearProperty(MenuSelect)</onclick>
+                <include>skinshortcuts-template-menubar</include>
+            </include>
+
+            <!-- Search icon (conditional) -->
+            <include content="Object_Control"
+                condition="!Skin.HasSetting(Home.DisableSearchMenu) + !Skin.HasSetting(Home.TextMenu)">
+                <param name="control">image</param>
+                <left>20</left>
+                <width>80</width>
+                <height>60</height>
+                <centertop>50%</centertop>
+                <aspectratio>keep</aspectratio>
+                <bordersize>4</bordersize>
+                <texture colordiffuse="main_fg_70">special://skin/extras/icons/search.png</texture>
+            </include>
+
+            <!-- OPTIMIZATION 7: Use simplified menu list with performance checks -->
+            <include content="Object_MenuBar_List" condition="!Skin.HasSetting(Home.TextMenu)">
+                <param name="id" value="300" />
+                <param name="color_nf" value="main_fg" />
+                <param name="altfocus" value="$EXP[Exp_ControlHasFocus_399]" />
+                <param name="solidfocus">$EXP[Exp_Control302_HasFocus]</param>
+                <onfocus condition="String.IsEmpty(Window.Property(MenuSelect))">SetFocus(399)</onfocus>
+                <onfocus condition="String.IsEmpty(Window.Property(MenuSelect))">
+                    SetProperty(TMDbHelper.WidgetContainer,301,Home)</onfocus>
+                <include content="Object_Left" condition="!Skin.HasSetting(Home.DisableSearchMenu)">
+                    <param name="left">80</param>
+                </include>
+                <include>skinshortcuts-template-menubar</include>
+                <content>
+                    <include>skinshortcuts-mainmenu</include>
+                </content>
+            </include>
+            <include condition="Skin.HasSetting(Home.TextMenu)">Home_Horz_Menubar_Text</include>
+        </include>
+    </include>
+
+    <!-- OPTIMIZATION 8: Simplified Text Menubar -->
+    <include name="Home_Horz_Menubar_Text">
+        <include content="Object_Hidden_List">
+            <param name="id" value="300" />
+            <onfocus condition="String.IsEmpty(Window.Property(MenuSelect))">SetFocus(399)</onfocus>
+            <onfocus condition="String.IsEmpty(Window.Property(MenuSelect))">
+                SetProperty(TMDbHelper.WidgetContainer,301,Home)</onfocus>
+            <include>skinshortcuts-template-menubar</include>
+            <content>
+                <include>skinshortcuts-mainmenu</include>
+            </content>
+        </include>
+
+        <!-- Static icons (no dynamic texture loading) -->
+        <control type="image">
+            <left>20</left>
+            <width>80</width>
+            <height>60</height>
+            <centertop>50%</centertop>
+            <aspectratio>keep</aspectratio>
+            <bordersize>0</bordersize>
+            <texture colordiffuse="main_fg_70">special://skin/extras/icons/home.png</texture>
+            <visible>Skin.HasSetting(Home.DisableSearchMenu) + !$EXP[Exp_Control302_HasFocus]</visible>
+        </control>
+        <control type="image">
+            <left>20</left>
+            <width>80</width>
+            <height>60</height>
+            <centertop>50%</centertop>
+            <aspectratio>keep</aspectratio>
+            <bordersize>4</bordersize>
+            <texture colordiffuse="main_fg_70">special://skin/extras/icons/search.png</texture>
+            <visible>!Skin.HasSetting(Home.DisableSearchMenu) + !$EXP[Exp_Control302_HasFocus]</visible>
+        </control>
+        <control type="image">
+            <left>20</left>
+            <width>80</width>
+            <height>60</height>
+            <centertop>50%</centertop>
+            <aspectratio>keep</aspectratio>
+            <bordersize>4</bordersize>
+            <texture colordiffuse="main_fg_70">$INFO[Container(300).ListItem.Icon]</texture>
+            <visible>$EXP[Exp_Control302_HasFocus]</visible>
+        </control>
+
+        <!-- Simplified grouplist -->
+        <control type="grouplist">
+            <height>256</height>
+            <centertop>20</centertop>
+            <left>80</left>
+            <orientation>horizontal</orientation>
+            <itemgap>-80</itemgap>
+            <include>skinshortcuts-template-menubar</include>
+            <onfocus>SetFocus(399)</onfocus>
+            <include>skinshortcuts-template-textmenu</include>
+        </control>
+    </include>
+
+    <!-- OPTIMIZATION 9: Streamlined Text Menu Buttons -->
+    <include name="Home_Horz_Menubar_Text_Button">
+        <!-- Focused state -->
+        <control type="togglebutton">
+            <texturefocus />
+            <texturenofocus />
+            <!-- OPTIMIZATION: Use static textures instead of dynamic texture maker -->
+            <alttexturefocus border="80" colordiffuse="$VAR[ColorSelected]">common/menumain.png</alttexturefocus>
+            <alttexturenofocus border="80" colordiffuse="$VAR[ColorSelected]">common/menumain.png</alttexturenofocus>
+            <usealttexture>String.IsEqual(Container(300).ListItem.Label,$PARAM[label]) +
+                !$EXP[Exp_Control302_HasFocus]</usealttexture>
+            <visible>$EXP[Exp_ControlHasFocus_300] | $EXP[Exp_ControlHasFocus_399]</visible>
+            <height>256</height>
+            <width>auto</width>
+            <label>$PARAM[label]</label>
+            <altlabel>[COLOR=$VAR[ColorSelected]]$PARAM[label][/COLOR]</altlabel>
+            <textoffsetx>80</textoffsetx>
+            <font>font_main_bold</font>
+            <textcolor>main_fg_70</textcolor>
+            <aligny>center</aligny>
+        </control>
+
+        <!-- Non-focused state -->
+        <control type="togglebutton">
+            <texturefocus />
+            <texturenofocus />
+            <alttexturefocus border="80" colordiffuse="dialog_bg_100">common/menumain.png</alttexturefocus>
+            <alttexturenofocus border="80" colordiffuse="dialog_bg_100">common/menumain.png</alttexturenofocus>
+            <usealttexture>String.IsEqual(Container(300).ListItem.Label,$PARAM[label]) +
+                !$EXP[Exp_Control302_HasFocus]</usealttexture>
+            <visible>![$EXP[Exp_ControlHasFocus_300] | $EXP[Exp_ControlHasFocus_399]]</visible>
+            <height>256</height>
+            <width>auto</width>
+            <label>$PARAM[label]</label>
+            <altlabel>[COLOR=dialog_fg_70]$PARAM[label][/COLOR]</altlabel>
+            <textoffsetx>80</textoffsetx>
+            <font>font_main_bold</font>
+            <textcolor>main_fg_70</textcolor>
+            <aligny>center</aligny>
+        </control>
+    </include>
+
+    <!-- OPTIMIZATION 10: Performance-Optimized Vertical Menubar -->
+    <include name="Home_Vert_Menubar">
+        <control type="group">
+            <visible>[$EXP[Exp_ControlHasFocus_300] | $EXP[Exp_ControlHasFocus_399] |
+                $EXP[Exp_ControlGroupHasFocus_303] | $EXP[Exp_Control302_HasFocus] |
+                Control.HasFocus(304) | Control.HasFocus(305) | $EXP[Exp_WindowNext1114]]</visible>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <!-- OPTIMIZATION: Simplified animations -->
+            <include condition="!Skin.HasSetting(Performance.ReduceEffects)">Animation_FadeIn</include>
+            <include condition="!Skin.HasSetting(Performance.ReduceEffects)">Animation_FadeOut</include>
+            <animation effect="fade" start="100" end="0" time="200"
+                condition="$EXP[Exp_WindowNext1114] + !Skin.HasSetting(Performance.ReduceEffects)">
+                Conditional</animation>
+
+            <!-- Hidden navigation button -->
+            <include content="Object_Hidden_Button">
+                <param name="id" value="399" />
+
+                <!-- OPTIMIZATION 11: Streamlined vertical navigation -->
+                <onup condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(AnimationDirection,Up)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(WidgetWait,1)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    Control.Move(300,-1)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    AlarmClock(WidgetWait,ClearProperty(WidgetWait),00:00,silent)</onup>
+                <onup condition="!String.IsEmpty(Container(300).ListItemNoWrap(-1).Label)">
+                    SetProperty(TMDbHelper.WidgetContainer,301,Home)</onup>
+                <onup
+                    condition="String.IsEmpty(Container(300).ListItemNoWrap(-1).Label) + !Skin.HasSetting(Home.DisableSearchMenu)">
+                    ActivateWindow(1114)</onup>
+                <onup
+                    condition="String.IsEmpty(Container(300).ListItemNoWrap(-1).Label) + Skin.HasSetting(Home.DisableSearchMenu)">
+                    304</onup>
+
+                <ondown condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(AnimationDirection,Down)</ondown>
+                <ondown condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(WidgetWait,1)</ondown>
+                <ondown condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    Control.Move(300,1)</ondown>
+                <ondown condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    AlarmClock(WidgetWait,ClearProperty(WidgetWait),00:00,silent)</ondown>
+                <ondown condition="!String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">
+                    SetProperty(TMDbHelper.WidgetContainer,301,Home)</ondown>
+                <ondown condition="String.IsEmpty(Container(300).ListItemNoWrap(1).Label)">304</ondown>
+
+                <onfocus>ClearProperty(OptionsMenuFocused,Home)</onfocus>
+
+                <!-- Left navigation logic (consolidated) -->
+                <onleft
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + String.IsEmpty(Skin.String(HomeMenu.OnUp)) + !Integer.IsEqual(Container(302).NumItems,0)">
+                    SetFocus(302,0,absolute)</onleft>
+                <onleft
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + Skin.String(HomeMenu.OnUp,PowerMenu)">
+                    SetProperty(OptionsMenuFocused,303,Home)</onleft>
+                <onleft
+                    condition="String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction)) + Skin.String(HomeMenu.OnUp,PowerMenu)">
+                    SetFocus(303)</onleft>
+
+                <onleft
+                    condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    SetProperty(CustomHubHeader,$INFO[Container(300).ListItem.Label],Home)</onleft>
+                <onleft
+                    condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    SetProperty(submenuVisibility,$INFO[Container(300).$EXP[Exp_HasSubmenuVisibility]],Home)</onleft>
+                <onleft
+                    condition="!String.IsEmpty(Container(300).ListItem.Property(menuOnUpAction))">
+                    $INFO[Container(300).ListItem.Property(menuOnUpAction)]</onleft>
+
+                <oninfo condition="!Integer.IsEqual(Container(302).NumItems,0)">
+                    SetFocus(302,0,absolute)</oninfo>
+                <onclick>SetProperty(MenuSelect,1)</onclick>
+                <onclick>SetFocus(300)</onclick>
+                <onclick>Action(Select)</onclick>
+                <onclick>ClearProperty(MenuSelect)</onclick>
+                <include>skinshortcuts-template-menubar</include>
+            </include>
+
+            <!-- Background dim -->
+            <control type="image">
+                <width>800</width>
+                <texture border="0,0,400,0">common/dim-side.png</texture>
+            </control>
+
+            <!-- OPTIMIZATION 12: Simplified submenu slide animation -->
+            <control type="group">
+                <animation effect="slide" start="0" end="80" time="300" tween="quadratic"
+                    easing="out"
+                    condition="$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)"
+                    reversible="false">Conditional</animation>
+                <animation effect="slide" start="80" end="0" time="300" tween="quadratic"
+                    easing="out"
+                    condition="!$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)"
+                    reversible="false">Conditional</animation>
+
+                <!-- Submenu list (simplified) -->
+                <control type="fixedlist" id="302">
+                    <left>40</left>
+                    <top>160</top>
+                    <bottom>200</bottom>
+                    <width>400</width>
+                    <focusposition>3</focusposition>
+                    <movement>3</movement>
+                    <orientation>vertical</orientation>
+                    <onleft>399</onleft>
+                    <onright>399</onright>
+                    <oninfo>SetFocus(399)</oninfo>
+                    <onback>399</onback>
+                    <!-- OPTIMIZATION: Conditional fade animations -->
+                    <animation effect="fade" start="0" end="100" delay="100" time="200"
+                        reversible="false"
+                        condition="$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)">
+                        Conditional</animation>
+                    <animation effect="fade" start="100" end="0" delay="100" time="200"
+                        reversible="false"
+                        condition="!$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)">
+                        Conditional</animation>
+                    <scrolltime tween="quadratic">300</scrolltime>
+
+                    <!-- Simplified layouts -->
+                    <itemlayout height="100" width="400">
+                        <control type="group">
+                            <top>40</top>
+                            <bottom>-40</bottom>
+                            <control type="image">
+                                <left>30</left>
+                                <width>60</width>
+                                <height>80</height>
+                                <aspectratio>keep</aspectratio>
+                                <bordersize>4</bordersize>
+                                <texture colordiffuse="panel_fg_70">$INFO[ListItem.Icon]</texture>
+                            </control>
+                            <control type="label">
+                                <left>120</left>
+                                <height>80</height>
+                                <font>font_main_bold</font>
+                                <textcolor>panel_fg_70</textcolor>
+                                <label>$INFO[ListItem.Label]</label>
+                            </control>
+                        </control>
+                    </itemlayout>
+
+                    <focusedlayout height="100" width="400">
+                        <control type="group">
+                            <top>40</top>
+                            <bottom>-40</bottom>
+                            <!-- OPTIMIZATION 13: Simplified focused state -->
+                            <control type="group">
+                                <visible>!$EXP[Exp_Control302_HasFocus]</visible>
+                                <control type="image">
+                                    <left>30</left>
+                                    <width>60</width>
+                                    <height>80</height>
+                                    <aspectratio>keep</aspectratio>
+                                    <bordersize>4</bordersize>
+                                    <texture colordiffuse="panel_fg_70">$INFO[ListItem.Icon]</texture>
+                                </control>
+                                <control type="label">
+                                    <left>120</left>
+                                    <height>80</height>
+                                    <font>font_main_bold</font>
+                                    <textcolor>panel_fg_70</textcolor>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                            </control>
+
+                            <control type="group">
+                                <visible>$EXP[Exp_Control302_HasFocus]</visible>
+                                <control type="group">
+                                    <left>30</left>
+                                    <width>60</width>
+                                    <height>80</height>
+                                    <!-- OPTIMIZATION: Use static texture with color diffuse instead
+                                    of dynamic texture maker -->
+                                    <control type="image">
+                                        <texture flipy="true" colordiffuse="$VAR[ColorSelected]">
+                                            common/circlebutton.png</texture>
+                                        <aspectratio>keep</aspectratio>
+                                        <bordersize>-50</bordersize>
+                                    </control>
+                                    <control type="image">
+                                        <aspectratio>keep</aspectratio>
+                                        <bordersize>4</bordersize>
+                                        <texture colordiffuse="$VAR[ColorSelected]">
+                                            $INFO[ListItem.Icon]</texture>
+                                    </control>
+                                </control>
+                                <control type="label">
+                                    <left>120</left>
+                                    <height>80</height>
+                                    <font>font_main_black</font>
+                                    <textcolor>panel_fg_100</textcolor>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                            </control>
+                        </control>
+                    </focusedlayout>
+                    <content>
+                        <include>skinshortcuts-submenu</include>
+                    </content>
+                </control>
+            </control>
+
+            <!-- OPTIMIZATION 14: Simplified main menu list -->
+            <control type="fixedlist" id="300">
+                <left>40</left>
+                <top>160</top>
+                <bottom>200</bottom>
+                <width>400</width>
+                <focusposition>3</focusposition>
+                <movement>3</movement>
+                <orientation>vertical</orientation>
+                <onfocus condition="String.IsEmpty(Window.Property(MenuSelect))">SetFocus(399)</onfocus>
+                <include>skinshortcuts-template-menubar</include>
+                <scrolltime tween="quadratic">300</scrolltime>
+
+                <itemlayout height="100" width="400">
+                    <control type="group">
+                        <top>40</top>
+                        <bottom>-40</bottom>
+                        <control type="image">
+                            <left>30</left>
+                            <width>60</width>
+                            <height>80</height>
+                            <aspectratio>keep</aspectratio>
+                            <bordersize>4</bordersize>
+                            <texture colordiffuse="panel_fg_70">$INFO[ListItem.Icon]</texture>
+                        </control>
+                        <control type="label">
+                            <left>120</left>
+                            <height>80</height>
+                            <font>font_main_bold</font>
+                            <textcolor>panel_fg_70</textcolor>
+                            <label>$INFO[ListItem.Label]</label>
+                            <visible>!$EXP[Exp_Control302_HasFocus]</visible>
+                            <animation effect="fade" start="0" end="100" delay="100" time="200"
+                                condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                        </control>
+                    </control>
+                </itemlayout>
+
+                <focusedlayout height="100" width="400">
+                    <control type="group">
+                        <top>40</top>
+                        <bottom>-40</bottom>
+                        <!-- Non-focused state -->
+                        <control type="group">
+                            <visible>![$EXP[Exp_ControlHasFocus_300] |
+                                $EXP[Exp_ControlHasFocus_399]]</visible>
+                            <!-- OPTIMIZATION 15: Static indicator instead of dynamic texture -->
+                            <control type="image">
+                                <texture flipy="true" colordiffuse="$VAR[ColorSelected]">
+                                    common/circle.png</texture>
+                                <aspectratio>keep</aspectratio>
+                                <width>10</width>
+                                <height>10</height>
+                                <centertop>40</centertop>
+                                <left>20</left>
+                            </control>
+                            <control type="image">
+                                <left>30</left>
+                                <width>60</width>
+                                <height>80</height>
+                                <aspectratio>keep</aspectratio>
+                                <bordersize>4</bordersize>
+                                <texture colordiffuse="panel_fg_70">$INFO[ListItem.Icon]</texture>
+                            </control>
+                        </control>
+
+                        <!-- Focused state -->
+                        <control type="group">
+                            <visible>$EXP[Exp_ControlHasFocus_300] | $EXP[Exp_ControlHasFocus_399]</visible>
+                            <control type="group">
+                                <left>30</left>
+                                <width>60</width>
+                                <height>80</height>
+                                <!-- OPTIMIZATION: Static texture with color diffuse -->
+                                <control type="image">
+                                    <texture flipy="true" colordiffuse="$VAR[ColorSelected]">
+                                        common/circlebutton.png</texture>
+                                    <aspectratio>keep</aspectratio>
+                                    <bordersize>-50</bordersize>
+                                </control>
+                                <control type="image">
+                                    <aspectratio>keep</aspectratio>
+                                    <bordersize>4</bordersize>
+                                    <texture colordiffuse="$VAR[ColorSelected]">$INFO[ListItem.Icon]</texture>
+                                </control>
+                            </control>
+                        </control>
+
+                        <!-- Label group -->
+                        <control type="group">
+                            <visible>!$EXP[Exp_Control302_HasFocus]</visible>
+                            <animation effect="fade" start="0" end="100" delay="100" time="200"
+                                condition="!Skin.HasSetting(Performance.ReduceEffects)">Visible</animation>
+                            <control type="label">
+                                <left>120</left>
+                                <height>80</height>
+                                <font>font_main_bold</font>
+                                <textcolor>panel_fg_70</textcolor>
+                                <label>$INFO[ListItem.Label]</label>
+                                <visible>![$EXP[Exp_ControlHasFocus_300] |
+                                    $EXP[Exp_ControlHasFocus_399]]</visible>
+                            </control>
+                            <control type="label">
+                                <left>120</left>
+                                <height>80</height>
+                                <font>font_main_bold</font>
+                                <textcolor>panel_fg_100</textcolor>
+                                <label>$INFO[ListItem.Label]</label>
+                                <visible>[$EXP[Exp_ControlHasFocus_300] |
+                                    $EXP[Exp_ControlHasFocus_399]]</visible>
+                            </control>
+                        </control>
+                    </control>
+                </focusedlayout>
+                <content>
+                    <include>skinshortcuts-mainmenu</include>
+                </content>
+            </control>
+
+            <!-- OPTIMIZATION 16: Simplified special buttons -->
+            <include content="Home_Vert_SpecialButton">
+                <param name="id">304</param>
+                <param name="icon">special://skin/extras/icons/settings.png</param>
+                <param name="onclick">ActivateWindow(interfacesettings)</param>
+                <param name="onleft">ActivateWindow(shutdownmenu)</param>
+                <param name="onright">ActivateWindow(shutdownmenu)</param>
+                <param name="label">$LOCALIZE[5]</param>
+                <bottom>view_pad</bottom>
+            </include>
+
+            <include content="Home_Vert_SpecialButton"
+                condition="!Skin.HasSetting(Home.DisableSearchMenu)">
+                <param name="id">305</param>
+                <param name="icon">special://skin/extras/icons/search.png</param>
+                <param name="onclick">ActivateWindow(1114)</param>
+                <param name="label">$LOCALIZE[137]</param>
+                <top>view_pad</top>
+            </include>
+        </control>
+    </include>
+
+    <!-- OPTIMIZATION 17: Performance-Optimized Special Button -->
+    <include name="Home_Vert_SpecialButton">
+        <control type="group">
+            <nested />
+            <left>view_pad</left>
+            <height>40</height>
+
+            <!-- Focus indicator (static texture) -->
+            <control type="image">
+                <centerleft>20</centerleft>
+                <centertop>50%</centertop>
+                <width>160</width>
+                <height>160</height>
+                <!-- OPTIMIZATION: Use static texture with color diffuse -->
+                <texture flipy="true" colordiffuse="$VAR[ColorSelected]">common/circlebutton.png</texture>
+                <aspectratio>keep</aspectratio>
+                <visible>Control.HasFocus($PARAM[id])</visible>
+            </control>
+
+            <control type="button" id="$PARAM[id]">
+                <onup>SetFocus(300,99,absolute)</onup>
+                <onup>399</onup>
+                <ondown condition="Skin.HasSetting(Home.DisableSearchMenu)">SetFocus(300,0,absolute)</ondown>
+                <ondown condition="Skin.HasSetting(Home.DisableSearchMenu)">399</ondown>
+                <centerleft>20</centerleft>
+                <centertop>50%</centertop>
+                <width>56</width>
+                <height>56</height>
+                <onclick>$PARAM[onclick]</onclick>
+                <onleft>$PARAM[onleft]</onleft>
+                <onright>$PARAM[onright]</onright>
+                <texturefocus colordiffuse="$VAR[ColorSelected]">$PARAM[icon]</texturefocus>
+                <texturenofocus colordiffuse="panel_fg_70">$PARAM[icon]</texturenofocus>
+            </control>
+
+            <!-- Labels (simplified) -->
+            <control type="label">
+                <left>80</left>
+                <font>font_main_bold</font>
+                <textcolor>panel_fg_70</textcolor>
+                <label>$PARAM[label]</label>
+                <visible>!Control.HasFocus($PARAM[id])</visible>
+            </control>
+            <control type="label">
+                <left>80</left>
+                <font>font_main_bold</font>
+                <textcolor>panel_fg_100</textcolor>
+                <label>$PARAM[label]</label>
+                <visible>Control.HasFocus($PARAM[id])</visible>
+            </control>
+        </control>
+    </include>
+
+    <!-- OPTIMIZATION 18: Massively Simplified Horizontal Submenu -->
+    <include name="Home_Horz_Submenu">
+        <include content="Object_Options_Menu">
+            <param name="visible"
+                value="!Window.IsVisible(DialogSelect.xml) + !$EXP[Exp_WindowVisible_Favourites]" />
+            <param name="onback" value="300" />
+            <param name="id" value="302" />
+            <param name="has_button_overlay" value="false" />
+            <param name="usegrouplist" value="false" />
+            <param name="nib_pos" value="420" />
+            <param name="useanimation" value="false" />
+
+            <include content="Object_Left"
+                condition="Skin.HasSetting(Home.DisableSearchMenu) | Skin.HasSetting(Home.TextMenu)">
+                <param name="left">40</param>
+            </include>
+            <include content="Object_Left"
+                condition="!Skin.HasSetting(Home.DisableSearchMenu) + !Skin.HasSetting(Home.TextMenu)">
+                <param name="left">140</param>
+            </include>
+
+            <!-- OPTIMIZATION 19: Reduced position-based slide animations from 10+ to 3 key
+            positions -->
+            <animation effect="slide" start="0" end="100"
+                condition="Container(300).Position(1) | Container(300).Position(2) | Container(300).Position(3)"
+                reversible="false">Conditional</animation>
+            <animation effect="slide" start="0" end="400"
+                condition="Container(300).Position(4) | Container(300).Position(5) | Container(300).Position(6)"
+                reversible="false">Conditional</animation>
+            <animation effect="slide" start="0" end="700"
+                condition="Integer.IsGreater(Container(300).Position,6)" reversible="false">
+                Conditional</animation>
+
+            <!-- OPTIMIZATION 20: Simplified conditional animations -->
+            <animation type="Conditional" reversible="false"
+                condition="$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)">
+                <effect type="fade" start="0" end="100" time="200" />
+                <effect type="slide" start="0,-30" end="0" center="auto" tween="back" easing="out"
+                    time="300" />
+            </animation>
+            <animation type="Conditional" reversible="false"
+                condition="!$EXP[Exp_Control302_HasFocus]">
+                <effect type="fade" start="100" end="0" time="0" />
+            </animation>
+
+            <!-- Window animations -->
+            <animation type="WindowOpen" reversible="true"
+                condition="$EXP[Exp_Control302_HasFocus] + !Skin.HasSetting(Performance.ReduceEffects)">
+                <effect type="fade" start="0" end="100" time="200" />
+                <effect type="slide" start="0,-30" end="0" center="auto" tween="back" easing="out"
+                    time="300" />
+            </animation>
+            <animation type="WindowClose" reversible="false"
+                condition="!Skin.HasSetting(Performance.ReduceEffects)">
+                <effect type="fade" start="100" end="0" time="150" />
+            </animation>
+
+            <!-- OPTIMIZATION 21: Simplified submenu list -->
+            <include content="List_DialogSelect">
+                <param name="id" value="302" />
+                <param name="itemlayout_include" value="Layout_Submenu" />
+                <onleft>300</onleft>
+                <onright>300</onright>
+                <onback>300</onback>
+                <ondown>302</ondown>
+                <onup>302</onup>
+                <top>grid_x12</top>
+                <bottom>grid_x02</bottom>
+                <content>
+                    <include>skinshortcuts-submenu</include>
+                </content>
+                <include condition="!Skin.HasSetting(Performance.ReduceEffects)">
+                    Animation_SlideIn_Dialog</include>
+                <animation effect="slide" start="0" end="0,-1080"
+                    condition="!$EXP[Exp_Control302_HasFocus]">Conditional</animation>
+            </include>
+        </include>
+    </include>
+</includes>

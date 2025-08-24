@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <defaultcontrol>300</defaultcontrol>
+    <include>Action_Blur_Onload</include>
+
+    <!-- OPTIMIZATION 1: Conditional script loading to prevent unnecessary executions -->
+    <onload
+        condition="Skin.HasSetting(Ratings.HideAll) + !Skin.HasSetting(TMDbHelper.DisableRatings)">
+        Skin.SetBool(TMDbHelper.DisableRatings)</onload>
+    <onload
+        condition="!Skin.HasSetting(Ratings.HideAll) + Skin.HasSetting(TMDbHelper.DisableRatings)">
+        Skin.Reset(TMDbHelper.DisableRatings)</onload>
+
+    <onload
+        condition="![Skin.HasSetting(TMDbHelper.EnableCrop) | Skin.HasSetting(TMDbHelper.EnableBlur)] + !Skin.HasSetting(TMDbHelper.DisableArtwork)">
+        Skin.SetBool(TMDbHelper.DisableArtwork)</onload>
+    <onload
+        condition="[Skin.HasSetting(TMDbHelper.EnableCrop) | Skin.HasSetting(TMDbHelper.EnableBlur)] + Skin.HasSetting(TMDbHelper.DisableArtwork)">
+        Skin.Reset(TMDbHelper.DisableArtwork)</onload>
+
+    <!-- OPTIMIZATION 2: Using your cached initialization system -->
+    <onload condition="String.IsEmpty(Window(Home).Property(TMDbHelper.Initialized))">
+        RunScript(plugin.video.themoviedb.helper,kodi_setting=myvideos.selectaction,property=KodiSetting.DefaultSelectAction)</onload>
+    <onload condition="String.IsEmpty(Window(Home).Property(TMDbHelper.Initialized))">
+        SetProperty(TMDbHelper.Initialized,true,Home)</onload>
+
+    <onload>Skin.SetString(TMDbHelper.MonitorContainer,99950)</onload>
+    <onload>ClearProperty(TMDbHelper.HideView,Home)</onload>
+    <onload>SetProperty(TMDbHelper.WidgetContainer,301,Home)</onload>
+
+    <!-- OPTIMIZATION 3: Conditional skinshortcuts rebuild -->
+    <onload
+        condition="String.IsEmpty(Window(Home).Property(ShortcutsBuilt)) | !String.IsEmpty(Window(Home).Property(RebuildShortcuts))">
+        RunScript(script.skinshortcuts,type=buildxml&amp;mainmenuID=300&amp;levels=5&amp;group=mainmenu|powermenu|searchmenu)</onload>
+    <onload condition="String.IsEmpty(Window(Home).Property(ShortcutsBuilt))">
+        SetProperty(ShortcutsBuilt,true,Home)</onload>
+    <onload condition="!String.IsEmpty(Window(Home).Property(RebuildShortcuts))">
+        ClearProperty(RebuildShortcuts,Home)</onload>
+
+    <onload
+        condition="Control.HasFocus(301) + !String.IsEmpty(Window(Home).Property(FullscreenWidgetRefocus))">
+        SetFocus($INFO[Window(Home).Property(FullscreenWidgetRefocus)])</onload>
+    <onload
+        condition="Control.HasFocus(301) + String.IsEmpty(Window(Home).Property(FullscreenWidgetRefocus))">
+        SetFocus(300)</onload>
+    <onload>ClearProperty(FullscreenWidgetRefocus,Home)</onload>
+
+    <onload
+        condition="!String.IsEmpty(Skin.String(Home.MenuPosition)) + !Window.Previous(MyVideoNav.xml) + !Window.Previous(MyMusicNav.xml) + !Window.Previous(MyPics.xml) + !Window.Previous(MyPrograms.xml) + !Window.Previous(MyGames.xml) + !Window.Previous(MyPVRGuide.xml) + !Window.Previous(MyPVRChannels.xml) + !Window.Previous(MyPVRRecordings.xml) + !Window.Previous(MyPVRSearch.xml) + !Window.Previous(MyPVRTimers.xml) + !Window.Previous(fullscreenvideo) + !Window.Previous(visualisation)">
+        SetFocus(300,$INFO[Skin.String(Home.MenuPosition)],absolute)</onload>
+
+    <onunload>ClearProperty(MenuSelect,Home)</onunload>
+    <onunload>ClearProperty(AnimationDirection,Home)</onunload>
+
+    <controls>
+        <include>Defs_TMDbHelper_Loader</include>
+
+        <include content="Object_Hidden_List">
+            <param name="id">99994</param>
+            <content>
+                <include>skinshortcuts-submenu-1</include>
+            </content>
+        </include>
+        <include>skinshortcuts-template-fullscreen-widget</include>
+        <include content="Object_Hidden_List">
+            <param name="id">301</param>
+            <!-- USING YOUR OPTIMIZED EXPRESSION -->
+            <visible>$EXP[Exp_StringIsEmpty_Container300ListItemPropertyWidgetPath]</visible>
+            <content>
+                <include>skinshortcuts-template-fullscreen-fallback</include>
+            </content>
+        </include>
+
+        <include>Background_ExtraFanart</include>
+        <include>Background_Main</include>
+
+        <!-- OPTIMIZATION 4: Using your cached expressions -->
+        <control type="group">
+            <visible>$EXP[Exp_TMDBWidget_Container301]</visible>
+            <visible>$EXP[Exp_FullscreenWidgetStandard]</visible>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <animation effect="fade" start="0" end="100" time="300" reversible="false">Visible</animation>
+            <animation effect="fade" start="100" end="0" time="200" reversible="false">Hidden</animation>
+            <include>Animation_Foreground_FadeInOut</include>
+            <include>Background_NotVideo</include>
+
+            <!-- OPTIMIZATION 5: Simplified transitions using your expressions -->
+            <control type="group">
+                <animation condition="Container(301).OnNext" effect="slide" start="0" end="-1920"
+                    delay="0" time="300" tween="quadratic" easing="out" reversible="false">
+                    Conditional</animation>
+                <animation condition="Container(301).OnPrevious" effect="slide" start="0" end="1920"
+                    delay="0" time="300" tween="quadratic" easing="out" reversible="false">
+                    Conditional</animation>
+
+                <control type="image">
+                    <width>1920</width>
+                    <height>1080</height>
+                    <texture background="true" fallback="background/fallback.jpg">
+                        $VAR[Image_FullscreenWidget_Artwork]</texture>
+                    <aspectratio>scale</aspectratio>
+                    <fadetime>300</fadetime>
+                </control>
+
+                <!-- Next/Previous images only when transitioning -->
+                <control type="image">
+                    <left>1920</left>
+                    <width>1920</width>
+                    <height>1080</height>
+                    <texture background="true" fallback="background/fallback.jpg">
+                        $VAR[Image_FullscreenWidget_Artwork+1]</texture>
+                    <aspectratio>scale</aspectratio>
+                    <visible>Container(301).OnNext</visible>
+                    <animation effect="fade" start="100" end="0" delay="300" time="1"
+                        reversible="false">Hidden</animation>
+                </control>
+
+                <control type="image">
+                    <left>-1920</left>
+                    <width>1920</width>
+                    <height>1080</height>
+                    <texture background="true" fallback="background/fallback.jpg">
+                        $VAR[Image_FullscreenWidget_Artwork-1]</texture>
+                    <aspectratio>scale</aspectratio>
+                    <visible>Container(301).OnPrevious</visible>
+                    <animation effect="fade" start="100" end="0" delay="300" time="1"
+                        reversible="false">Hidden</animation>
+                </control>
+            </control>
+
+            <control type="image">
+                <texture>background/vignetted.png</texture>
+            </control>
+        </control>
+
+        <!-- OPTIMIZATION 6: Using your cached control visibility -->
+        <control type="group" id="320">
+            <animation type="Conditional"
+                condition="$EXP[Exp_Control330_Visible] | !String.IsEmpty(Window(Home).Property(330_FocusBounce))"
+                reversible="false">
+                <effect type="slide" end="0,-15" time="100" tween="sine" />
+                <effect type="slide" end="0,15" time="150" tween="sine" delay="100" />
+            </animation>
+            <animation type="WindowOpen" reversible="false" condition="Window.Previous(1114)">
+                <effect type="slide" start="320" end="0" time="300" delay="0" tween="cubic"
+                    easing="out" />
+                <effect type="fade" start="0" end="100" time="200" delay="0" tween="sine"
+                    easing="out" />
+            </animation>
+            <animation type="WindowClose" reversible="false" condition="$EXP[Exp_WindowNext1114]">
+                <effect type="slide" start="0" end="320" time="200" delay="0" tween="cubic"
+                    easing="out" />
+                <effect type="fade" start="100" end="0" time="200" delay="0" tween="sine"
+                    easing="out" />
+            </animation>
+            <include>skinshortcuts-template-widgets</include>
+        </control>
+
+        <!-- Using performance setting check -->
+        <include
+            condition="!Skin.HasSetting(Home.CleanWidgets) + !Skin.HasSetting(Performance.ReduceEffects)">
+            Home_Widgets_Fade</include>
+
+        <control type="button" id="398">
+            <width>1</width>
+            <height>1</height>
+            <left>-1920</left>
+            <top>-1080</top>
+            <include>skinshortcuts-template-wallfade-top-visible</include>
+            <visible>!String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full)</visible>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+        </control>
+
+        <!-- OPTIMIZATION 7: Using your furniture optimizations -->
+        <control type="group">
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <visible>!Window.IsVisible(1145)</visible>
+            <visible>!Skin.HasSetting(Home.CleanWidgets) | $EXP[Exp_TMDBWidget_Container301] |
+                String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full) |
+                !Control.IsVisible(398)</visible>
+            <include>Furniture_Top_Right</include>
+        </control>
+
+        <!-- Using your mega-cached expressions -->
+        <include content="Object_Control" condition="Skin.HasSetting(Widgets.ExpandedFooter)">
+            <param name="control">group</param>
+            <visible>!$EXP[Exp_InfoDialogs]</visible>
+            <visible>!$EXP[Exp_HomeBarVisible_Complete]</visible>
+            <visible>!$EXP[Exp_RecommendationDialogs]</visible>
+            <visible>[String.IsEqual(Window.Property(Slide.WidgetInfoStyle),Full) +
+                !String.IsEmpty(Window.Property(Slide.WidgetContainer))] |
+                [$EXP[Exp_TMDBWidget_Container301] +
+                !String.IsEqual(Container(300).ListItem.Property(widgetStyle),Fullscreen) +
+                !$EXP[Exp_StringIsEmpty_Container300ListItemPropertyWidgetStyle]]</visible>
+            <include>Furniture_Bottom</include>
+            <animation effect="fade" start="0" end="100" time="300" delay="100" reversible="false">
+                Visible</animation>
+        </include>
+
+        <!-- Menu components - using compatibility -->
+        <include condition="!Skin.HasSetting(Home.VerticalMenu)">Home_Horz_Submenu</include>
+        <include condition="Skin.HasSetting(Home.VerticalMenu)">Home_Vert_Submenu</include>
+        <include condition="!Skin.HasSetting(Home.VerticalMenu)">Home_Horz_Menubar</include>
+        <include condition="Skin.HasSetting(Home.VerticalMenu)">Home_Vert_Menubar</include>
+        <include condition="!Skin.HasSetting(Home.VerticalMenu)">Home_Horz_Furniture_TopLeft</include>
+        <include condition="Skin.HasSetting(Home.VerticalMenu)">Home_Vert_Furniture_TopLeft</include>
+
+        <!-- Search transition using your expression -->
+        <control type="group">
+            <visible>$EXP[Exp_WindowNext1114]</visible>
+            <left>40</left>
+            <top>60</top>
+            <height>view_pad</height>
+            <control type="group">
+                <left>20</left>
+                <width>740</width>
+                <control type="group">
+                    <height>70</height>
+                    <centertop>50%</centertop>
+                    <include content="Object_MenuBar_Item">
+                        <param name="haslabel" value="false" />
+                        <param name="selected" value="true" />
+                        <param name="visible" value="true" />
+                    </include>
+                    <control type="image">
+                        <left>10</left>
+                        <width>60</width>
+                        <bordersize>4</bordersize>
+                        <aspectratio>keep</aspectratio>
+                        <texture colordiffuse="$VAR[ColorSelected]">
+                            special://skin/extras/icons/search.png</texture>
+                    </control>
+                </control>
+            </control>
+        </control>
+
+        <control type="button" id="330">
+            <width>1</width>
+            <height>1</height>
+            <left>-1000</left>
+            <onfocus>SetFocus(320)</onfocus>
+            <onclick>SetFocus(320)</onclick>
+            <visible allowhiddenfocus="true">Control.HasFocus(330)</visible>
+            <animation effect="fade" time="200" start="0" end="0">Focus</animation>
+        </control>
+
+        <!-- Using your window visibility optimizations -->
+        <include content="Object_Options_Menu">
+            <param name="grouplist_items" value="skinshortcuts-template-powermenu" />
+            <param name="visible"
+                value="!Window.IsVisible(DialogSelect.xml) + !$EXP[Exp_WindowVisible_Favourites]" />
+            <param name="isfocused"
+                value="!String.IsEmpty(Window(Home).Property(OptionsMenuFocused))" />
+            <param name="onback" value="399" />
+            <param name="id" value="303" />
+            <param name="action_include">Action_OptionsMenu_HomeWrap</param>
+        </include>
+
+        <control type="button" id="360">
+            <right>80</right>
+            <centertop>100</centertop>
+            <width>60</width>
+            <height>60</height>
+            <visible allowhiddenfocus="true">false</visible>
+            <onleft>399</onleft>
+            <onright>399</onright>
+            <onup>399</onup>
+            <ondown>399</ondown>
+            <onclick condition="!String.IsEmpty(Window(Home).Property(OptionsMenuFocused))">
+                ClearProperty(OptionsMenuFocused,Home)</onclick>
+            <onclick condition="!String.IsEmpty(Window(Home).Property(OptionsMenuFocused))">
+                SetFocus(399)</onclick>
+            <onclick condition="String.IsEmpty(Window(Home).Property(OptionsMenuFocused))">
+                SetProperty(OptionsMenuFocused,303,Home)</onclick>
+            <onclick condition="String.IsEmpty(Window(Home).Property(OptionsMenuFocused))">
+                SetFocus(303)</onclick>
+        </control>
+
+        <include content="Object_Control" condition="!Skin.HasSetting(Home.DisableSearchMenu)">
+            <param name="control">button</param>
+            <onclick>ClearProperty(AnimationDirection)</onclick>
+            <onclick>ActivateWindow(1114)</onclick>
+            <texturefocus />
+            <texturenofocus />
+            <font />
+            <left>80</left>
+            <centertop>100</centertop>
+            <height>60</height>
+            <width>120</width>
+        </include>
+    </controls>
+</window>

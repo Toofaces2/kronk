@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 from jurialmunkey.ftools import cached_property
 
@@ -114,16 +114,6 @@ class SyncItemData:
 
     def get_last_watched_at(self):
         return self.item.get('last_watched_at') or self.item.get('watched_at')
-
-    """
-    last_updated_at
-    """
-    @cached_property
-    def last_updated_at(self):
-        return self.get_last_updated_at()
-
-    def get_last_updated_at(self):
-        return self.item.get('last_updated_at') or self.item.get('updated_at')
 
     """
     last_collected_at
@@ -474,7 +464,7 @@ class SyncItem:
 
                 # Count watched_episodes
                 if episode_data.last_watched_at:
-                    if not item_data.reset_at or episode_data.last_watched_at > item_data.reset_at:  # Only count episodes watched since we (re)started watching
+                    if not item_data.reset_at or episode_data.last_watched_at > item_data.reset_at:
                         season_data.watched_episodes += 1
 
                 # Set values to back to keys for database storage
@@ -493,24 +483,19 @@ class SyncItem:
                 season_data.tmdb_id = item_data.tmdb_id
                 season_data.season_number = season["number"]
 
-                # Iterate through episodes data
                 sync_episodes(season_data, season, item_data, item)
 
-                # Sum watched_episodes
                 if season_data.watched_episodes:
-                    if season_data.season_number and season_data.season_number != 0:  # Exclude special seasons
+                    if season_data.season_number and season_data.season_number != 0:
                         item_data.watched_episodes += season_data.watched_episodes
 
-                # Set values to back to keys for database storage
                 data[season_data.item_id] = [getattr(season_data, k) for k in self.keys]
 
         for item in self.meta:
             item_data = SyncItemData(item, item.get('type') or self.item_type)
 
-            # Iterate through seasons data for watched type syncs where seasons/episodes presented as list
             sync_seasons(item_data, item)
 
-            # Set values to back to keys for database storage
             data[item_data.item_id] = [getattr(item_data, k) for k in self.keys]
 
         return data

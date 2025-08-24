@@ -1,30 +1,38 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from xbmc import executebuiltin
+from tmdbhelper.lib.addon.logger import kodi_log
+
 class TableDailyExport:
     conditions = None
 
     def __init__(self, parent):
         self.parent = parent
 
-    @staticmethod
-    def get_downloaded_list(export_list):
-        from json import loads as json_loads
-        from tmdbhelper.lib.files.downloader import Downloader
-        from tmdbhelper.lib.addon.tmdate import get_datetime_utcnow, get_timedelta
-        datestamp = get_datetime_utcnow() - get_timedelta(days=1)
-        datestamp = datestamp.strftime("%m_%d_%Y")
-        download_url = f'https://files.tmdb.org/p/exports/{export_list}_ids_{datestamp}.json.gz'
-        return [json_loads(i) for i in Downloader(download_url=download_url).get_gzip_text().splitlines()]
+    def get_cached_or_trigger_update(self):
+        """
+        The main optimized function. It checks for expiry, triggers a background update if needed,
+        and always returns the currently available data immediately.
+        """
+        # Check if the cache for this table is expired.
+        if self.parent.is_expired(self.table):
+            self.trigger_background_update()
+            
+        # Always return the data currently in the database, even if it's stale.
+        # The UI will be instant, and the data will be updated silently in the background.
+        return self.parent.get_cached_values(
+            self.table,
+            self.keys,
+            conditions=self.conditions
+        )
 
-    @staticmethod
-    def configure_list(data):
-        return [{k: i[k] for k in i.keys()} for i in data] if data else []
-
-    def get_cached(self):
-        return self.parent.get_cached_values(self.table, self.keys, self.configure_list, conditions=self.conditions)
-
-    def set_cached(self):
-        data = self.get_downloaded_list(self.export_list)
-        values = [tuple((i[x] for x in self.keys)) for i in data] if data else None
-        if not values:
-            return
-        self.parent.set_cached_values(self.table, self.keys, values)
-        return self.get_cached()
+    def trigger_background_update(self):
+        """
+        Signals the background service to start the download and import process.
+        This is a non-blocking "fire and forget" call.
+        """
+        kodi_log(f'CACHE: Stale cache for table "{self.table}". Triggering background update.')
+        # Use a built-in Kodi command to call our own addon's service with specific parameters.
+        # This tells service.py to run the 'update_daily_export' action for the specified list.
+        command = f'RunPlugin(plugin://plugin.video.themoviedb.helper/?info=service_bridge&action=update_daily_export&export_list={self.export_list})'
+        executebuiltin(command)

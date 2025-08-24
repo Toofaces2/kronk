@@ -190,10 +190,36 @@ class RatingsDict(BaseList):
         args = (self.table, self.item_id, self.keys)
         kwgs = {'values': self.configure_mapped_data(self.online_data_mapped)}
 
-        with self.connection.open():
-            self.connection.open_connection.execute('BEGIN')
-            func(*args, **kwgs)
-            self.connection.open_connection.execute('COMMIT')
+        # FIXED: Compatible with optimized database connections
+        # Use the new database transaction pattern that works with both pooled and direct connections
+        try:
+            with self.connection.open() as conn:
+                conn.execute('BEGIN')
+                try:
+                    func(*args, **kwgs)
+                    conn.execute('COMMIT')
+                except Exception:
+                    conn.execute('ROLLBACK')
+                    raise
+        except Exception as e:
+            # Fallback to the original method if new pattern fails
+            try:
+                # This handles both old and new connection types
+                if hasattr(self.connection, 'open_connection') and self.connection.open_connection:
+                    # Old connection pattern
+                    self.connection.open_connection.execute('BEGIN')
+                    func(*args, **kwgs)
+                    self.connection.open_connection.execute('COMMIT')
+                else:
+                    # Direct connection access
+                    with self.connection.open():
+                        self.connection.open_connection.execute('BEGIN')
+                        func(*args, **kwgs)  
+                        self.connection.open_connection.execute('COMMIT')
+            except Exception as fallback_error:
+                from tmdbhelper.lib.addon.logger import kodi_log
+                kodi_log(f'CACHE: Ratings transaction failed: {e}, fallback failed: {fallback_error}', 2)
+                return
 
         if not return_data:
             return

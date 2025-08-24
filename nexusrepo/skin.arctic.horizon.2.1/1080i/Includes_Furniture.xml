@@ -26,7 +26,7 @@
         <definition>
             <include content="Furniture_Topbar_Group" condition="$PARAM[enabled]">
                 <include content="Furniture_Gutters">
-                     <include content="Furniture_MainLabel" condition="!$PARAM[minimal]">
+                    <include content="Furniture_MainLabel" condition="!$PARAM[minimal]">
                         <param name="id" value="$PARAM[id]" />
                         <aligny>center</aligny>
                         <label>$PARAM[label]</label>
@@ -53,21 +53,28 @@
                             <param name="control">group</param>
                             <right>0</right>
                             <visible>$EXP[Exp_ContainerScrollingAlphabet]</visible>
-                            <animation effect="fade" start="0" end="100" time="200" delay="400" reversible="true">Visible</animation>
-                            <animation effect="fade" start="100" end="0" time="200" delay="1200" reversible="true">Hidden</animation>
+                            <animation effect="fade" start="0" end="100" time="200" delay="400"
+                                reversible="true">Visible</animation>
+                            <animation effect="fade" start="100" end="0" time="200" delay="1200"
+                                reversible="true">Hidden</animation>
 
                             <control type="group">
                                 <right>0</right>
                                 <width>60</width>
                                 <control type="image">
-                                    <include content="Dimension_Padding"><param name="pad" value="-24" /></include>
-                                    <texture colordiffuse="shadow_hard" border="54">shadows/circle_shadow.png</texture>
+                                    <include content="Dimension_Padding">
+                                        <param name="pad" value="-24" />
+                                    </include>
+                                    <texture colordiffuse="shadow_hard" border="54">
+                                        shadows/circle_shadow.png</texture>
                                 </control>
                                 <control type="image">
-                                    <texture colordiffuse="dialog_bg_100" border="30">common/circle.png</texture>
+                                    <texture colordiffuse="dialog_bg_100" border="30">
+                                        common/circle.png</texture>
                                 </control>
                                 <control type="image">
-                                    <texture colordiffuse="overlay_soft" border="30">common/circle.png</texture>
+                                    <texture colordiffuse="overlay_soft" border="30">
+                                        common/circle.png</texture>
                                 </control>
                                 <control type="label">
                                     <textcolor>dialog_fg_70</textcolor>
@@ -87,8 +94,10 @@
                             <param name="align" value="right" />
                             <right>0</right>
                             <visible>!$EXP[Exp_ContainerScrollingAlphabet]</visible>
-                            <animation effect="fade" start="0" end="100" time="200" delay="1200" reversible="true">Visible</animation>
-                            <animation effect="fade" start="100" end="0" time="200" delay="400" reversible="true">Hidden</animation>
+                            <animation effect="fade" start="0" end="100" time="200" delay="1200"
+                                reversible="true">Visible</animation>
+                            <animation effect="fade" start="100" end="0" time="200" delay="400"
+                                reversible="true">Hidden</animation>
                         </include>
                         <include content="Object_MenuButton" condition="!$PARAM[minimal]">
                             <param name="icon" value="$PARAM[icon]" />
@@ -108,7 +117,8 @@
                     <param name="progress_id" value="933" />
                     <param name="hastime" value="true" />
                     <param name="mainlabel" value="$VAR[Label_NowPlayingTitle]" />
-                    <param name="minilabel" value="$VAR[Label_NowPlayingSubLabel,, • ]$INFO[Player.Time]$INFO[Player.Duration, / ,]" />
+                    <param name="minilabel"
+                        value="$VAR[Label_NowPlayingSubLabel,, • ]$INFO[Player.Time]$INFO[Player.Duration, / ,]" />
                     <param name="icon" value="$VAR[Image_NowPlaying_PlayPause]" />
                     <visible>$EXP[Exp_HasFurnitureNowPlaying]</visible>
                     <control type="progress" id="933">
@@ -209,16 +219,15 @@
                     <height>40</height>
                     <width>40</width>
                     <aspectratio>keep</aspectratio>
-                    <texture colordiffuse="main_fg_100">$INFO[Weather.FanartCode,resource://resource.images.weathericons.white/,.png]</texture>
-                    <visible>Weather.IsFetched</visible>
-                    <visible>Skin.String(WeatherClock,Large)</visible>
+                    <texture colordiffuse="main_fg_100">
+                        $INFO[Weather.FanartCode,resource://resource.images.weathericons.white/,.png]</texture>
+                    <visible>$EXP[Exp_WeatherLargeDisplay]</visible>
                 </control>
                 <include content="Furniture_MenuLabel">
                     <label>$INFO[Weather.Temperature]</label>
                     <align>$PARAM[align]</align>
                     <width>auto</width>
-                    <visible>Weather.IsFetched</visible>
-                    <visible>Skin.String(WeatherClock,Large)</visible>
+                    <visible>$EXP[Exp_WeatherLargeDisplay]</visible>
                 </include>
                 <include content="Furniture_MenuLabel">
                     <label>•</label>
@@ -226,8 +235,7 @@
                     <width>auto</width>
                     <textcolor>main_fg_70</textcolor>
                     <textcolor>$VAR[ColorHighlight]</textcolor>
-                    <visible>Weather.IsFetched</visible>
-                    <visible>Skin.String(WeatherClock,Large)</visible>
+                    <visible>$EXP[Exp_WeatherLargeDisplay]</visible>
                 </include>
                 <include content="Furniture_MenuLabel">
                     <label>$INFO[System.Time]</label>
@@ -246,7 +254,8 @@
                     <itemgap>10</itemgap>
                     <visible>$EXP[Exp_HasPagesItems]</visible>
                     <include content="Furniture_MiniLabel">
-                        <label>$INFO[Container.CurrentPage,, $LOCALIZE[1443] ]$INFO[Container.NumPages,, $LOCALIZE[31110]]</label>
+                        <label>$INFO[Container.CurrentPage,, $LOCALIZE[1443]
+                            ]$INFO[Container.NumPages,, $LOCALIZE[31110]]</label>
                         <align>$PARAM[align]</align>
                         <width>auto</width>
                     </include>
@@ -273,23 +282,21 @@
                         <height>40</height>
                         <width>40</width>
                         <aspectratio>keep</aspectratio>
-                        <texture colordiffuse="main_fg_100">$INFO[Weather.FanartCode,resource://resource.images.weathericons.white/,.png]</texture>
-                        <visible>Weather.IsFetched</visible>
-                        <visible>Skin.String(WeatherClock,Small)</visible>
+                        <texture colordiffuse="main_fg_100">
+                            $INFO[Weather.FanartCode,resource://resource.images.weathericons.white/,.png]</texture>
+
                     </control>
                     <include content="Furniture_MiniLabel">
                         <label>$INFO[Weather.Temperature]</label>
                         <align>$PARAM[align]</align>
                         <width>auto</width>
-                        <visible>Weather.IsFetched</visible>
-                        <visible>Skin.String(WeatherClock,Small)</visible>
+                        <visible>$EXP[Exp_WeatherSmallDisplay]</visible>
                     </include>
                     <include content="Furniture_MiniLabel">
                         <label>•</label>
                         <align>$PARAM[align]</align>
                         <width>auto</width>
-                        <visible>Weather.IsFetched</visible>
-                        <visible>Skin.String(WeatherClock,Small)</visible>
+                        <visible>$EXP[Exp_WeatherSmallDisplay]</visible>
                     </include>
                     <include content="Furniture_MiniLabel">
                         <label>$INFO[System.Date]</label>

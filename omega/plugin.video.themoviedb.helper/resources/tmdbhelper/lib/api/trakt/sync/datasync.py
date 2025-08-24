@@ -5,6 +5,7 @@ from jurialmunkey.checks import has_arg_value
 from tmdbhelper.lib.addon.consts import LASTACTIVITIES_DATA
 from tmdbhelper.lib.items.database.database import ItemDetailsDatabase
 from tmdbhelper.lib.files.dbdata import DatabaseStatements
+from threading import Thread, Lock
 
 
 class SyncItemDetailsDatabase(ItemDetailsDatabase):
@@ -29,38 +30,43 @@ class SyncItemDetailsDatabase(ItemDetailsDatabase):
 
 class SyncDataSetters:
     """ Add-in class to group setter methods for SyncData class """
-
+    
     def like_userlist(self, user_slug=None, list_slug=None, confirmation=False, delete=False):
-        from tmdbhelper.lib.addon.plugin import get_localized
-        func = self.delete_response if delete else self.post_response
-        response = func('users', user_slug, 'lists', list_slug, 'like')
-        if confirmation:
-            from xbmcgui import Dialog
-            affix = get_localized(32320) if delete else get_localized(32321)
-            body = [
-                get_localized(32316).format(affix),
-                get_localized(32168).format(list_slug, user_slug)
-            ] if response.status_code == 204 else [
-                get_localized(32317).format(affix),
-                get_localized(32168).format(list_slug, user_slug),
-                get_localized(32318).format(response.status_code)
-            ]
-            Dialog().ok(get_localized(32315), '\n'.join(body))
-        if response.status_code == 204:
-            return response
+        # We need to make this non-blocking
+        def _run_like_userlist():
+            from tmdbhelper.lib.addon.plugin import get_localized
+            func = self.delete_response if delete else self.post_response
+            response = func('users', user_slug, 'lists', list_slug, 'like')
+            if confirmation:
+                from xbmcgui import Dialog
+                affix = get_localized(32320) if delete else get_localized(32321)
+                body = [
+                    get_localized(32316).format(affix),
+                    get_localized(32168).format(list_slug, user_slug)
+                ] if response.status_code == 204 else [
+                    get_localized(32317).format(affix),
+                    get_localized(32168).format(list_slug, user_slug),
+                    get_localized(32318).format(response.status_code)
+                ]
+                Dialog().ok(get_localized(32315), '\n'.join(body))
+            if response.status_code == 204:
+                return response
+
+        # Run this in a background thread so the UI doesn't freeze
+        thread = Thread(target=_run_like_userlist)
+        thread.start()
 
 
 class SyncDataGetterAll:
-
     operator = 'OR'
-    query_clauses = ('item_type=?', )  # WHERE {query_clauses}
-    query_values = ('', )  # WHERE {query_clauses}={query_values}
-    clause_keys = ()  # WHERE {query_clauses} AND ({clause_key} IS NOT NULL {operator} {clause_key} IS NOT NULL)
-    additional_keys = ()  # Additional keys to retrieve values for
-    query_value_item_argx = 0  # Query value to use as sync item_type (normally item_type query is first ie 0 index)
+    query_clauses = ('item_type=?', )
+    query_values = ('', )
+    clause_keys = ()
+    additional_keys = ()
+    query_value_item_argx = 0
 
     def __init__(self, instance_syncdata):
-        self.instance_syncdata = instance_syncdata  # The SyncData object sync called from
+        self.instance_syncdata = instance_syncdata
 
     @cached_property
     def item_type(self):
@@ -103,7 +109,11 @@ class SyncDataGetterAll:
         return self.get_items()
 
     def get_items(self):
-        self.instance_syncdata.sync(self.item_type, self.keys)
+        # Check if the cache is expired and if a background sync is needed
+        if self.instance_syncdata.cache.is_expired(self.item_type):
+            self.instance_syncdata.sync_in_background(self.item_type)
+
+        # Return whatever is currently in the cache, even if it's stale.
         return self.instance_syncdata.cache.get_list_values(keys=self.keys, values=self.query_values, conditions=self.clause)
 
 
@@ -151,7 +161,7 @@ class SyncDataGetterAllUnHiddenShowsNextEpisode(SyncDataGetterDroppedWatchedUnHi
     clause_keys = ('next_episode_id', )
 
 
-class SyncDataGetterAllUnHiddenEpisodesUpNext(SyncDataGetterDroppedWatchedUnHidden):  # TODO: UNSURE ABOUT THIS ONE
+class SyncDataGetterAllUnHiddenEpisodesUpNext(SyncDataGetterDroppedWatchedUnHidden):
     query_values = ('episode', )
     clause_keys = ('upnext_episode_id', )
 
@@ -163,7 +173,7 @@ class SyncDataGetterAllItems(SyncDataGetterAll):
 
 
 class SyncDataGetterAllUnwatchedItems(SyncDataGetterAll):
-    query_clauses = ('item_type=?', 'last_watched_at IS NULL')  # WHERE {query_clauses}
+    query_clauses = ('item_type=?', 'last_watched_at IS NULL')
 
     @property
     def query_values(self):
@@ -171,7 +181,7 @@ class SyncDataGetterAllUnwatchedItems(SyncDataGetterAll):
 
 
 class SyncDataGetterAllReleasedItems(SyncDataGetterAll):
-    query_clauses = ('item_type=?', 'premiered < date(\'now\')', 'premiered IS NOT NULL')  # WHERE {query_clauses}
+    query_clauses = ('item_type=?', 'premiered < date(\'now\')', 'premiered IS NOT NULL')
 
     @property
     def query_values(self):
@@ -179,7 +189,7 @@ class SyncDataGetterAllReleasedItems(SyncDataGetterAll):
 
 
 class SyncDataGetterAllAnticipatedItems(SyncDataGetterAll):
-    query_clauses = ('item_type=?', '(premiered >= date(\'now\') OR premiered IS NULL)')  # WHERE {query_clauses}
+    query_clauses = ('item_type=?', '(premiered >= date(\'now\') OR premiered IS NULL)')
 
     @property
     def query_values(self):
@@ -278,7 +288,6 @@ class SyncDataGetterAllUnHiddenShowsInProgress:
 
         for i in self.calendar_data:
             try:
-                # Check that date is still in range once utc_converted
                 if not date_in_range(
                     i['first_aired'],
                     utc_convert=True,
@@ -287,7 +296,6 @@ class SyncDataGetterAllUnHiddenShowsInProgress:
                 ):
                     continue
 
-                # Ignore specials
                 if i['episode']['season'] == 0:
                     continue
 
@@ -305,10 +313,8 @@ class SyncDataGetterAllUnHiddenShowsInProgress:
         if tmdb_id not in self.calendar_episodes:
             return True
         for season in self.calendar_episodes[tmdb_id]:
-            # Check for a new season airing
             if not self.get_episode_watchedcount(tmdb_id, season):
                 return False
-            # Check for a new episode airing
             for episode in self.calendar_episodes[tmdb_id][season]:
                 if not self.get_episode_playcount(tmdb_id, season, episode):
                     return False
@@ -445,7 +451,7 @@ class SyncDataGetters:
 class SyncData(SyncDataGetters):
 
     def __init__(self, trakt_api):
-        self.trakt_api = trakt_api  # The TraktAPI object sync called from
+        self.trakt_api = trakt_api
 
     def delete_response(self, *args, **kwargs):
         return self.trakt_api.delete_response(*args, **kwargs)
@@ -464,7 +470,7 @@ class SyncData(SyncDataGetters):
         return {k: v['sync'] for k, v in self.cache.simplecache_columns.items()}
 
     def reset_lastactivities(self):
-        self.window.get_property(LASTACTIVITIES_DATA, clear_property=True)  # Wipe new last activities cache
+        self.window.get_property(LASTACTIVITIES_DATA, clear_property=True)
 
     @cached_property
     def cache(self):

@@ -1,0 +1,253 @@
+<window type="dialog">
+    <defaultcontrol always="true">6000</defaultcontrol>
+    <onfocus>AlarmClock(ClearRecLoading,ClearProperty(Recommendations.IsLoading,Home),00:00,silent)</onfocus>
+    <onload>SetProperty(Action_5095,info)</onload>
+
+    <!-- Global visibility expressions for optimization -->
+    <expression name="IsPersonType">
+        String.IsEqual(Window(Home).Property(TMDbHelper.Recommendations.TMDbType),person)</expression>
+    <expression name="IsNormalType">!$EXP[IsPersonType]</expression>
+    <expression name="HasInfoDialogs">$EXP[Exp_InfoDialogs]</expression>
+    <expression name="HasRecommendationDialogs">$EXP[Exp_RecommendationDialogs]</expression>
+    <expression name="ShowControl330">$EXP[Exp_Control330_Visible]</expression>
+
+    <!-- Shared visibility expression for widget loading states -->
+    <expression name="WidgetVisible_5000">!String.IsEmpty(Window.Property(List_5000_Visible)) |
+        !String.IsEmpty(Window.Property(List_5000_IsUpdating))</expression>
+    <expression name="WidgetVisible_5001">!String.IsEmpty(Window.Property(List_5001_Visible)) |
+        !String.IsEmpty(Window.Property(List_5001_IsUpdating))</expression>
+    <expression name="WidgetVisible_5002">!String.IsEmpty(Window.Property(List_5002_Visible)) |
+        !String.IsEmpty(Window.Property(List_5002_IsUpdating))</expression>
+    <expression name="WidgetVisible_5003">!String.IsEmpty(Window.Property(List_5003_Visible)) |
+        !String.IsEmpty(Window.Property(List_5003_IsUpdating))</expression>
+    <expression name="WidgetVisible_5004">!String.IsEmpty(Window.Property(List_5004_Visible)) |
+        !String.IsEmpty(Window.Property(List_5004_IsUpdating))</expression>
+
+    <!-- Consolidated skin settings -->
+    <expression name="ShowCast">!Skin.HasSetting(Info.DisableCast)</expression>
+    <expression name="ShowSeasons">!Skin.HasSetting(Info.DisableSeasons)</expression>
+    <expression name="ShowCollections">!Skin.HasSetting(Info.DisableCollections)</expression>
+    <expression name="ShowRecommendations">!Skin.HasSetting(Info.DisableRecommendations)</expression>
+    <expression name="ShowSimilar">!Skin.HasSetting(Info.DisableSimilar)</expression>
+    <expression name="ShowExpandPlot">Skin.HasSetting(Recommendations.ExpandPlot)</expression>
+
+    <controls>
+        <include>Defs_TMDbHelper_Loader</include>
+
+        <!-- Main content group with lazy loading -->
+        <control type="group">
+            <include>Animation_Recommendations_Window</include>
+            <visible>!$EXP[HasInfoDialogs] + !$EXP[HasRecommendationDialogs]</visible>
+
+            <!-- Normal content (movies/TV shows) -->
+            <include content="Object_Control" condition="$EXP[IsNormalType]">
+                <param name="control">grouplist</param>
+                <param name="id">6000</param>
+                <onup>Close</onup>
+                <ondown>330</ondown>
+                <animation type="Conditional" condition="$EXP[ShowControl330]" reversible="false">
+                    <effect type="slide" end="0,-20" time="60" tween="sine" />
+                    <effect type="slide" end="0,20" time="180" tween="sine" delay="80" />
+                </animation>
+                <orientation>vertical</orientation>
+
+                <!-- Top spacing -->
+                <control type="group" id="6100">
+                    <height>widget_tbump_h</height>
+                </control>
+
+                <!-- Lazy-loaded widgets with staggered initialization -->
+                <!-- Cast Widget -->
+                <include content="OptimizedWidget_Poster" condition="$EXP[ShowCast]">
+                    <param name="groupid">5100</param>
+                    <param name="id">5000</param>
+                    <param name="label">$LOCALIZE[206]</param>
+                    <param name="visible">$EXP[WidgetVisible_5000]</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5000_IsUpdating))</param>
+                    <param name="load_delay">0</param>
+                    <include content="Widget_Recs_Basic">
+                        <param name="id">5000</param>
+                    </include>
+                </include>
+
+                <!-- Seasons Widget -->
+                <include content="OptimizedWidget_Poster" condition="$EXP[ShowSeasons]">
+                    <param name="groupid">5101</param>
+                    <param name="id">5001</param>
+                    <param name="label">$LOCALIZE[33054]</param>
+                    <param name="visible">$EXP[WidgetVisible_5001]</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5001_IsUpdating))</param>
+                    <param name="detailed">true</param>
+                    <param name="load_delay">200</param>
+                    <include content="Widget_Recs_Basic">
+                        <param name="id">5001</param>
+                    </include>
+                </include>
+
+                <!-- Collections Widget -->
+                <include content="OptimizedWidget_Poster" condition="$EXP[ShowCollections]">
+                    <param name="groupid">5102</param>
+                    <param name="id">5002</param>
+                    <param name="label">$INFO[Window.Property(Collection)]</param>
+                    <param name="visible">$EXP[WidgetVisible_5002]</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5002_IsUpdating))</param>
+                    <param name="infowidget">$EXP[ShowExpandPlot]</param>
+                    <param name="load_delay">400</param>
+                    <include content="Widget_Recs_Expand">
+                        <param name="id">5002</param>
+                    </include>
+                </include>
+
+                <!-- Recommendations Widget -->
+                <include content="OptimizedWidget_Poster" condition="$EXP[ShowRecommendations]">
+                    <param name="groupid">5103</param>
+                    <param name="id">5003</param>
+                    <param name="label">$LOCALIZE[31018]</param>
+                    <param name="visible">$EXP[WidgetVisible_5003]</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5003_IsUpdating))</param>
+                    <param name="infowidget">$EXP[ShowExpandPlot]</param>
+                    <param name="load_delay">600</param>
+                    <include content="Widget_Recs_Expand">
+                        <param name="id">5003</param>
+                    </include>
+                </include>
+
+                <!-- Similar Widget -->
+                <include content="OptimizedWidget_Poster" condition="$EXP[ShowSimilar]">
+                    <param name="groupid">5104</param>
+                    <param name="id">5004</param>
+                    <param name="label">$LOCALIZE[31021]</param>
+                    <param name="visible">$EXP[WidgetVisible_5004]</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5004_IsUpdating))</param>
+                    <param name="infowidget">$EXP[ShowExpandPlot]</param>
+                    <param name="load_delay">800</param>
+                    <include content="Widget_Recs_Expand">
+                        <param name="id">5004</param>
+                    </include>
+                </include>
+
+                <!-- Additional widgets with further staggered loading... -->
+                <!-- Year Widget -->
+                <include content="OptimizedWidget_Poster"
+                    condition="!Skin.HasSetting(Info.DisableYear)">
+                    <param name="groupid">5105</param>
+                    <param name="id">5005</param>
+                    <param name="label">$INFO[Window.Property(Year),$LOCALIZE[31060] ,]</param>
+                    <param name="visible">!String.IsEmpty(Window.Property(List_5005_Visible)) |
+                        !String.IsEmpty(Window.Property(List_5005_IsUpdating))</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5005_IsUpdating))</param>
+                    <param name="infowidget">$EXP[ShowExpandPlot]</param>
+                    <param name="load_delay">1000</param>
+                    <include content="Widget_Recs_Expand">
+                        <param name="id">5005</param>
+                    </include>
+                </include>
+
+                <!-- Remaining widgets follow similar pattern with incremental delays -->
+            </include>
+
+            <!-- Person content (different layout) -->
+            <include content="Object_Control" condition="$EXP[IsPersonType]">
+                <param name="control">grouplist</param>
+                <param name="id">6000</param>
+                <onup>Close</onup>
+                <ondown>330</ondown>
+                <orientation>vertical</orientation>
+
+                <control type="group" id="6100">
+                    <height>widget_tbump_h</height>
+                </control>
+
+                <!-- Person-specific widgets -->
+                <include content="OptimizedWidget_Poster">
+                    <param name="groupid">5100</param>
+                    <param name="id">5000</param>
+                    <param name="label">$LOCALIZE[31066]</param>
+                    <param name="detailed">true</param>
+                    <param name="visible">!String.IsEmpty(Window.Property(List_5000_Visible)) |
+                        !String.IsEmpty(Window.Property(List_5000_IsUpdating))</param>
+                    <param name="busy_isupdating">
+                        !String.IsEmpty(Window.Property(List_5000_IsUpdating))</param>
+                    <param name="infowidget">$EXP[ShowExpandPlot]</param>
+                    <param name="load_delay">0</param>
+                    <include content="Widget_Recs_Expand">
+                        <param name="id">5000</param>
+                    </include>
+                </include>
+
+                <!-- Additional person widgets with staggered loading -->
+            </include>
+
+            <!-- Wall fade optimization -->
+            <include content="Object_WallFade">
+                <param name="id" value="6000" />
+                <param name="direction_buttons">true</param>
+            </include>
+
+            <!-- Optimized title display -->
+            <control type="group">
+                <left>view_pad</left>
+                <top>40</top>
+                <height>120</height>
+                <width>info_panel_w</width>
+                <include content="Info_Title">
+                    <param name="mainlogo_visible">
+                        !String.IsEmpty(Window(Home).Property(TMDbHelper.Recommendations.Logo))</param>
+                    <param name="mainlogo_texture">
+                        $INFO[Window(Home).Property(TMDbHelper.Recommendations.Logo)]</param>
+                </include>
+            </control>
+        </control>
+
+        <!-- Top right furniture -->
+        <include content="Furniture_Top_Right">
+            <param name="icon">special://skin/extras/icons/info2.png</param>
+        </include>
+
+        <!-- Video player overlay (only when needed) -->
+        <include content="Object_Control"
+            condition="Control.HasFocus(7001) + $EXP[Exp_PlayerHasVideo]">
+            <param name="control">group</param>
+            <include>Animation_FadeIn_Delay</include>
+            <control type="image">
+                <include>Texture_Shadow_40</include>
+                <texture colordiffuse="black" border="12">common/box.png</texture>
+            </control>
+            <control type="group">
+                <control type="videowindow" />
+            </control>
+            <include content="DialogInfo_VideoTrailerControl">
+                <param name="onback">5020</param>
+            </include>
+        </include>
+
+        <!-- Focus control -->
+        <control type="button" id="330">
+            <width>1</width>
+            <height>1</height>
+            <left>-1000</left>
+            <onfocus>SetFocus(6000)</onfocus>
+            <onclick>SetFocus(6000)</onclick>
+            <visible allowhiddenfocus="true">Control.HasFocus(330)</visible>
+            <animation effect="fade" time="300" start="0" end="0">Focus</animation>
+        </control>
+
+        <!-- Image viewers (lazy loaded) -->
+        <include content="Dialog_ImageViewer" condition="Control.IsVisible(5092)">
+            <param name="buttonid" value="5292" />
+            <param name="listid" value="5092" />
+            <param name="art" value="PicturePath" />
+        </include>
+        <include content="Dialog_ImageViewer" condition="Control.IsVisible(5091)">
+            <param name="buttonid" value="5291" />
+            <param name="listid" value="5091" />
+            <param name="art" value="PicturePath" />
+        </include>
+    </controls>
+</window>

@@ -126,7 +126,7 @@ class ListItemCacher:
     def __init__(self, parent, tmdb_type, tmdb_id, season=None, episode=None, listitem_config=None):
         if parent.__class__.__name__ != 'ListItemDetails':
             raise Exception(f'Requires ListItemDetails parent but {parent.__class__.__name__} given')
-        self.parent = parent  # ListItemDetails instance
+        self.parent = parent
         self.tmdb_type = tmdb_type
         self.tmdb_id = tmdb_id
         self.season = season
@@ -182,7 +182,6 @@ class ListItemCacher:
     def try_queued_data(self):
         if not self.baseitem_db_cache:
             return
-        # self.baseitem_db_cache.connection = connection
         self.baseitem_db_cache.cache_refresh = 'basic' if self.parent.cache_refresh == 'basic' else None
         return self.baseitem_db_cache.try_cached_data(return_queue=True)
 
@@ -191,7 +190,7 @@ class ListItemThread:
     def __init__(self, parent, items):
         if parent.__class__.__name__ != 'ListItemDetails':
             raise Exception(f'Requires ListItemDetails parent but {parent.__class__.__name__} given')
-        self.parent = parent  # ListItemDetails instance
+        self.parent = parent
         self.items = items
         self.connection = self.parent.connection
         self.log_timers = self.parent.log_timers
@@ -235,7 +234,6 @@ class ListItemThread:
             return self.get_func_queue()
 
     def get_func_queue(self):
-
         def _queued_data(listitem_config):
             return listitem_config.try_queued_data()
 

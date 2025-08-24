@@ -46,7 +46,7 @@
     <expression name="Exp_HasPlayerStatus">$EXP[Exp_PlayerCaching] | $EXP[Exp_PlayerPaused] |
         $EXP[Exp_PlayerRewinding] |
         $EXP[Exp_PlayerForwarding] | Player.Seeking | [$EXP[Exp_PlayerDisplayAfterSeek] +
-        !$EXP[Exp_StringIsEmpty_PlayerSeekOffset]] | !S$EXP[Exp_StringIsEmpty_PlayerSeekNumeric] |
+        !$EXP[Exp_StringIsEmpty_PlayerSeekOffset]] | !$EXP[Exp_StringIsEmpty_PlayerSeekNumeric] |
         !$EXP[Exp_StringIsEmpty_PVRChannelNumberInput] | $EXP[Exp_HasTempoShift]</expression>
 
     <expression name="Exp_HasAutoCompletion">[$EXP[Exp_SystemHasAddon_AutoCompletion] +
@@ -147,7 +147,8 @@
 
 
     <!-- ORIGINAL EXPRESSIONS (ESSENTIAL FOR FUNCTIONALITY) -->
-    <expression name="Exp_HasBackgroundVideo">[Skin.HasSetting(UseBackgroundVideo) + $EXP[Exp_PlayerHasVideo]
+    <expression name="Exp_HasBackgroundVideo">[Skin.HasSetting(UseBackgroundVideo) +
+        $EXP[Exp_PlayerHasVideo]
         + ![$EXP[Exp_InfoDialogs] + !$EXP[Exp_StringIsEmpty_WindowHomePropertyHasTrailer]]]</expression>
 
     <expression name="Exp_HasBackgroundFanart">[[[$EXP[Exp_IsMediaWindow] |
@@ -353,7 +354,8 @@
     <expression name="Exp_OSD_PopupCondition">[!$EXP[Exp_SkinSetting_OSDDisablePopups]]</expression>
     <expression name="Exp_NotLiveTV">[!$EXP[Exp_VideoPlayerContentLiveTV]]</expression>
 
-    <expression name="Exp_HasFurnitureNowPlaying">[[[$EXP[Exp_PlayerHasVideo] + ![$EXP[Exp_InfoDialogs] +
+    <expression name="Exp_HasFurnitureNowPlaying">[[[$EXP[Exp_PlayerHasVideo] +
+        ![$EXP[Exp_InfoDialogs] +
         !$EXP[Exp_StringIsEmpty_WindowHomePropertyHasTrailer]]] | $EXP[Exp_PlayerHasAudio]] +
         ![$EXP[Exp_VideoPlayerIsFullscreen] | $EXP[Exp_WindowVisible_MusicVisualisation]]]</expression>
 
