@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="repository.ah2.1" name="Arctic Horizon 2.1 Repository" version="0.0.1" provider-name="DeFiNiek">
-    <extension point="xbmc.addon.repository" name="Arctic Horizon 2.1 Repository">
+<addon id="repository.ah2.1" name="Kronk Edition Repository" version="0.0.1" provider-name="DeFiNiek/JokerTV">
+    <extension point="xbmc.addon.repository" name="Kronk Edition Repository">
         <dir>
             <info compressed="false">https://raw.githubusercontent.com/Toofaces2/kronk/main/repo/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/Toofaces2/kronk/main/repo/zips/addons.xml.md5</checksum>
