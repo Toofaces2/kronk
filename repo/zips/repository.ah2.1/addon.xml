@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.ah2.1" name="Kronk Edition Repository" version="0.0.1" provider-name="JokerTV/DeFiNiek">
+    <extension point="xbmc.addon.repository" name="Kronk Edition Repository">
+        <dir>
+            <info compressed="false">https://raw.githubusercontent.com/Toofaces2/kronk/main/repo/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/Toofaces2/kronk/main/repo/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/Toofaces2/kronk/main/repo/zips/</datadir>
+        </dir>
+        <dir minversion="19.9.1" maxversion="20.9.0">
+            <info compressed="false">https://raw.githubusercontent.com/Toofaces2/kronk/main/nexusrepo/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/Toofaces2/kronk/main/nexusrepo/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/Toofaces2/kronk/main/nexusrepo/zips/</datadir>
+        </dir>
+        <dir minversion="20.9.1">
+            <info compressed="false">https://raw.githubusercontent.com/Toofaces2/kronk/main/omega/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/Toofaces2/kronk/main/omega/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/Toofaces2/kronk/main/omega/zips/</datadir>
+        </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Kronk Edition Repository</summary>
+        <description>A repository for releases of the continued Kronk Edition skin of Jurial Munkey/JokerTV.</description>
+        <disclaimer>All credits to the development of the skin go to Jurial Munkey, DeFiNiek & JokerTV just optimizes and maintains the continued skin.</disclaimer>
+        <platform>all</platform>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
+</addon>
