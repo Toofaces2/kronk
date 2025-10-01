@@ -1,5 +1,5 @@
 # Kodi Media Center language file
-# Addon Name: Arctic Horizon 2
+# Addon Name: Kronk Edition
 # Addon id: skin.arctic.horizon.2
 # Addon Provider: jurialmunkey
 msgid ""
