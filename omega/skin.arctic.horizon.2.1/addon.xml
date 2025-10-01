@@ -1,4 +1,4 @@
-<addon id="skin.arctic.horizon.2.1" name="Arctic Horizon 2.1" provider-name="DeFiNiek" version="0.0.1">
+<addon id="skin.arctic.horizon.2.1" name="Kronk Edition" provider-name="DeFiNiek/JokerTV" version="0.0.1">
     <requires>
         <import addon="xbmc.gui" version="5.17.0" />
         <import addon="script.skinshortcuts" version="0.4.0" />
